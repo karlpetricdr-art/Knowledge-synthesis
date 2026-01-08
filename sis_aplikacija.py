@@ -6,13 +6,13 @@ from openai import OpenAI
 # =========================================================
 # 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
 # =========================================================
-# This creates a tactile, 3D relief style pyramid and tree.
+# Posodobljeno: Dodan črn rob (stroke) na krog za 3D reliefni stil.
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <!-- Soft Shadow Filter for Relief Effect -->
         <filter id="reliefShadow" x="-20%" y="-20%" width="150%" height="150%">
-            <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+            <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
         </filter>
         <!-- Gradients for Depth -->
         <linearGradient id="pyramidSide" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -25,8 +25,8 @@ SVG_3D_RELIEF = """
         </linearGradient>
     </defs>
     
-    <!-- Background Relief Circle -->
-    <circle cx="120" cy="120" r="100" fill="#f0f0f0" filter="url(#reliefShadow)" />
+    <!-- Background Relief Circle with Black 3D Border -->
+    <circle cx="120" cy="120" r="100" fill="#f0f0f0" stroke="#000000" stroke-width="4" filter="url(#reliefShadow)" />
 
     <!-- 3D Pyramid (Two-tone for depth) -->
     <path d="M120 40 L50 180 L120 200 Z" fill="url(#pyramidSide)" />
@@ -107,6 +107,12 @@ KNOWLEDGE_BASE = {
             "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
             "facets": ["Genetics", "Cell Biology", "Ecology"]
         },
+        "Neuroscience": {
+            "cat": "Natural Sciences",
+            "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"],
+            "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"],
+            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping"]
+        },
         "Psychology": {
             "cat": "Social Sciences",
             "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
@@ -137,11 +143,23 @@ KNOWLEDGE_BASE = {
             "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
             "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
         },
+        "Library Science": {
+            "cat": "Applied Sciences",
+            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
+            "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
+            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation"]
+        },
         "Philosophy": {
             "cat": "Humanities",
             "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
             "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
             "facets": ["Ethics", "Metaphysics", "Epistemology"]
+        },
+        "Linguistics": {
+            "cat": "Humanities",
+            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
+            "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
+            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
         }
     }
 }
@@ -207,7 +225,9 @@ with st.sidebar:
             st.write(f"**{p}**: {d}")
 
     with st.expander("🔬 Science Fields"):
-        for s, d in KNOWLEDGE_BASE["subject_details"].items():
+        # Urejeno po abecedi za lažji pregled
+        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
+            d = KNOWLEDGE_BASE["subject_details"][s]
             st.write(f"• **{s}** ({d['cat']})")
 
     with st.expander("🏗️ Structural Models"):
@@ -235,7 +255,9 @@ with col2:
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 with col3:
-    selected_science = st.selectbox("3. Science Field:", list(KNOWLEDGE_BASE["subject_details"].keys()))
+    # Urejen seznam znanosti
+    sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
+    selected_science = st.selectbox("3. Science Field:", sciences_list)
     selected_model = st.selectbox("4. Structural Model:", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
 
 st.divider()
