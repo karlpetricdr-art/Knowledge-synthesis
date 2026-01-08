@@ -4,46 +4,51 @@ import base64
 from openai import OpenAI
 
 # =========================================================
-# 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
+# 0. NADGRAJEN 3D RELIEF LOGO (Tree of Knowledge Edition)
 # =========================================================
-# Posodobljeno: Dodan črn rob (stroke) na krog za 3D reliefni stil.
+# Ta SVG simulira globino, črn reliefni rob in specifične simbole znanja.
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <!-- Soft Shadow Filter for Relief Effect -->
         <filter id="reliefShadow" x="-20%" y="-20%" width="150%" height="150%">
-            <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+            <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
         </filter>
-        <!-- Gradients for Depth -->
-        <linearGradient id="pyramidSide" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#e0e0e0;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#bdbdbd;stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="treeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#66bb6a;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
+        <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#4e342e;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#26140f;stop-opacity:1" />
         </linearGradient>
     </defs>
     
-    <!-- Background Relief Circle with Black 3D Border -->
-    <circle cx="120" cy="120" r="100" fill="#f0f0f0" stroke="#000000" stroke-width="4" filter="url(#reliefShadow)" />
+    <!-- Glavni krog s poudarjenim črnim 3D robom -->
+    <circle cx="120" cy="120" r="110" fill="#ffffff" stroke="#000000" stroke-width="8" filter="url(#reliefShadow)" />
+    
+    <!-- Razdelitev ozadja (Levo: Humanistika, Desno: Naravoslovje) -->
+    <path d="M120 10 A110 110 0 0 0 120 230 Z" fill="#f1f8e9" /> 
+    <path d="M120 10 A110 110 0 0 1 120 230 Z" fill="#e3f2fd" />
 
-    <!-- 3D Pyramid (Two-tone for depth) -->
-    <path d="M120 40 L50 180 L120 200 Z" fill="url(#pyramidSide)" />
-    <path d="M120 40 L190 180 L120 200 Z" fill="#9e9e9e" />
+    <!-- Reliefno Deblo drevesa -->
+    <path d="M115 210 Q120 180 120 120 T125 40" stroke="url(#trunkGrad)" stroke-width="12" fill="none" stroke-linecap="round" filter="url(#reliefShadow)"/>
+
+    <!-- SIMBOLI NA VEJAH -->
+    <!-- NEUROSCIENCE (Simbol možganov / vijolična) -->
+    <circle cx="165" cy="80" r="22" fill="#ce93d8" filter="url(#reliefShadow)" />
+    <path d="M160 75 Q165 70 170 75 T175 80" stroke="white" fill="none" stroke-width="2"/>
     
-    <!-- Tree Trunk -->
-    <rect x="116" y="110" width="8" height="70" rx="2" fill="#5d4037" />
-    
-    <!-- 3D Spheres (Knowledge Nodes) -->
-    <circle cx="120" cy="85" r="30" fill="url(#treeGrad)" filter="url(#reliefShadow)" />
-    <circle cx="95" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
-    <circle cx="145" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
-    
-    <!-- Floating 'Lego' Knowledge Bricks -->
-    <rect x="70" y="170" width="20" height="12" rx="2" fill="#1565c0" filter="url(#reliefShadow)" />
-    <rect x="150" y="170" width="20" height="12" rx="2" fill="#c62828" filter="url(#reliefShadow)" />
-    <rect x="110" y="185" width="20" height="12" rx="2" fill="#f9a825" filter="url(#reliefShadow)" />
+    <!-- LIBRARY SCIENCE (Simbol knjige / modra) -->
+    <rect x="145" y="130" width="35" height="25" rx="3" fill="#64b5f6" filter="url(#reliefShadow)" />
+    <line x1="150" y1="135" x2="175" y2="135" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="145" x2="175" y2="145" stroke="white" stroke-width="2"/>
+
+    <!-- LINGUISTICS (Govorni oblaček / zelena) -->
+    <rect x="60" y="90" width="40" height="30" rx="10" fill="#81c784" filter="url(#reliefShadow)" />
+    <path d="M90 120 L100 130 L100 120" fill="#81c784" />
+    <circle cx="75" cy="105" r="2" fill="white"/>
+    <circle cx="80" cy="105" r="2" fill="white"/>
+    <circle cx="85" cy="105" r="2" fill="white"/>
+
+    <!-- Spodnji LABIRINT (Algoritmi / črna) -->
+    <circle cx="120" cy="190" r="28" fill="#37474f" filter="url(#reliefShadow)" />
+    <path d="M110 180 H130 M105 190 H135 M110 200 H130" stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
 </svg>
 """
 
@@ -51,116 +56,72 @@ def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. POSODOBLJENA MULTIDIMENZIONALNA ONTOLOGIJA
 # =========================================================
 KNOWLEDGE_BASE = {
-    "profiles": {
-        "Adventurers": {
-            "drivers": "cross-disciplinary exploration / discovery",
-            "description": "Explorers seeking to connect distant fields and find hidden patterns in new territories."
+    "subject_details": {
+        "🧠 Neuroscience": {
+            "cat": "Natural Sciences",
+            "methods": ["Neuroimaging (fMRI/EEG)", "Electrophysiology", "Cognitive Mapping"],
+            "tools": ["Brain-Computer Interfaces", "Neural Networks", "Patch-clamp"],
+            "facets": ["Neuroplasticity", "Synaptic Transmission", "Neural Correlates of Consciousness"]
         },
-        "Applicators": {
-            "drivers": "practical utility / real-world implementation",
-            "description": "Pragmatic minds focused on efficiency, usability, and solving concrete challenges."
+        "📚 Library Science": {
+            "cat": "Applied Sciences",
+            "methods": ["Taxonomic Classification", "Archival Appraisal", "Information Retrieval"],
+            "tools": ["Metadata Schemas (Dublin Core)", "KOHA Systems", "Digital Repositories"],
+            "facets": ["Knowledge Organization", "Bibliometrics", "Preservation Theory"]
         },
-        "Know-it-alls": {
-            "drivers": "foundational unity / total synthesis",
-            "description": "Systemic thinkers seeking a unified theory of everything and absolute logical clarity."
+        "🗣️ Linguistics": {
+            "cat": "Humanities",
+            "methods": ["Corpus Analysis", "Syntactic Parsing", "Discourse Analysis"],
+            "tools": ["NLTK (Natural Language Toolkit)", "Praat", "Concordance Software"],
+            "facets": ["Morphology & Syntax", "Semantics", "Computational Linguistics"]
         },
-        "Observers": {
-            "drivers": "systemic evolution / pattern recognition",
-            "description": "Detached analysts who monitor how systems change over time without direct intervention."
+        "⚛️ Physics": {
+            "cat": "Natural Sciences", "methods": ["Mathematical Modeling", "Experimentation"],
+            "tools": ["Spectrometer", "Particle Accelerator"], "facets": ["Quantum Mechanics", "Thermodynamics"]
+        },
+        "🧪 Chemistry": {
+            "cat": "Natural Sciences", "methods": ["Synthesis", "Spectroscopy"],
+            "tools": ["NMR Spectrometer", "Chromatograph"], "facets": ["Molecular Bonding", "Organic Synthesis"]
+        },
+        "🧬 Biology": {
+            "cat": "Natural Sciences", "methods": ["CRISPR Editing", "DNA Sequencing"],
+            "tools": ["Sequencer", "Confocal Microscope"], "facets": ["Genetics", "Ecology"]
+        },
+        "💻 Computer Science": {
+            "cat": "Formal Sciences", "methods": ["Algorithm Design", "Formal Verification"],
+            "tools": ["IDE", "GPU Clusters"], "facets": ["AI", "Cybersecurity"]
+        },
+        "🏛️ Philosophy": {
+            "cat": "Humanities", "methods": ["Conceptual Analysis", "Phenomenology"],
+            "tools": ["Logic Mapping", "Critical Text Analysis"], "facets": ["Ethics", "Epistemology"]
+        },
+        "🏥 Medicine": {
+            "cat": "Applied Sciences", "methods": ["Clinical Trials", "Diagnostics"],
+            "tools": ["MRI", "Stethoscopes"], "facets": ["Immunology", "Pharmacology"]
         }
+    },
+    "profiles": {
+        "Adventurers": {"description": "Explorers seeking to connect distant fields."},
+        "Applicators": {"description": "Pragmatic minds focused on utility."},
+        "Know-it-alls": {"description": "Systemic thinkers seeking unified theory."},
+        "Observers": {"description": "Analysts monitoring systemic evolution."}
     },
     "paradigms": {
-        "Empiricism": "Knowledge based on sensory experience and data-driven induction.",
-        "Rationalism": "Knowledge based on deductive logic and innate intellectual principles.",
-        "Constructivism": "Knowledge as a social and cognitive construction based on context.",
-        "Positivism": "Strict adherence to observable and scientifically verifiable facts.",
-        "Pragmatism": "Knowledge validated by its practical consequences and success."
+        "Empiricism": "Data-driven induction.",
+        "Rationalism": "Deductive logic.",
+        "Constructivism": "Socially constructed context.",
+        "Positivism": "Scientifically verifiable facts.",
+        "Pragmatism": "Practical consequences and success."
     },
     "knowledge_models": {
-        "Causal Connections": "Analyzing the chain of causes, effects, and the 'why' behind phenomena.",
-        "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
-        "Episodes & Sequences": "Organizing knowledge as a chronological flow and narrative processes.",
-        "Facts & Characteristics": "Focusing on raw data and properties of living or inanimate objects.",
-        "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
-        "Glossary": "Precise definitions of terminology and subject-specific labels.",
-        "Concepts": "Situational conceptual maps, categories, and abstract mental constructs."
-    },
-    "subject_details": {
-        "Physics": {
-            "cat": "Natural Sciences",
-            "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"],
-            "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
-            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
-        },
-        "Chemistry": {
-            "cat": "Natural Sciences",
-            "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"],
-            "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"],
-            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry"]
-        },
-        "Biology": {
-            "cat": "Natural Sciences",
-            "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"],
-            "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
-            "facets": ["Genetics", "Cell Biology", "Ecology"]
-        },
-        "Neuroscience": {
-            "cat": "Natural Sciences",
-            "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"],
-            "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"],
-            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping"]
-        },
-        "Psychology": {
-            "cat": "Social Sciences",
-            "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
-            "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
-        },
-        "Sociology": {
-            "cat": "Social Sciences",
-            "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"],
-            "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"],
-            "facets": ["Social Stratification", "Group Dynamics", "Urbanization"]
-        },
-        "Computer Science": {
-            "cat": "Formal Sciences",
-            "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
-            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
-        },
-        "Medicine": {
-            "cat": "Applied Sciences",
-            "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"],
-            "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"],
-            "facets": ["Pathology", "Immunology", "Pharmacology"]
-        },
-        "Engineering": {
-            "cat": "Applied Sciences",
-            "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
-            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
-        },
-        "Library Science": {
-            "cat": "Applied Sciences",
-            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
-            "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
-            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation"]
-        },
-        "Philosophy": {
-            "cat": "Humanities",
-            "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
-            "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
-            "facets": ["Ethics", "Metaphysics", "Epistemology"]
-        },
-        "Linguistics": {
-            "cat": "Humanities",
-            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
-            "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
-            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
-        }
+        "Glossary": "Precise definitions and terminology.",
+        "Concepts": "Conceptual maps and mental constructs.",
+        "Causal Connections": "Analyzing 'why' and effects.",
+        "Facts & Characteristics": "Raw data and properties.",
+        "Generalizations": "Broad universal frameworks."
     }
 }
 
@@ -169,17 +130,17 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
+# Inicializacija seje
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
+st.markdown("Multi-dimensional synthesis engine with **3D Knowledge Architecture**.")
 
-# --- SIDEBAR START ---
+# --- SIDEBAR ---
 with st.sidebar:
-    # DISPLAY 3D RELIEF LOGO
     st.markdown(
         f"""
-        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
             <img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220">
         </div>
         """,
@@ -188,61 +149,18 @@ with st.sidebar:
     
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
-    if not api_key and "GROQ_API_KEY" in st.secrets:
-        api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-
-    with st.popover("📖 Lego Building Guide", use_container_width=True):
-        st.markdown("""
-        ### Synthesis Process:
-        1. **Foundation:** Choose your **Paradigm**.
-        2. **Bricks:** Select **Science**, **Method**, and **Tool**.
-        3. **Building Plan:** Select the **Structural Model** (Glossary, Concepts, etc.).
-        4. **Target View:** Match with your **Profile**.
-        """)
-
-    st.subheader("🚀 Quick Templates")
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        if st.button("🎓 Academic", use_container_width=True):
-            st.session_state.expertise_val = "Expert"
-            st.rerun()
-    with col_t2:
-        if st.button("👶 Learner", use_container_width=True):
-            st.session_state.expertise_val = "Novice"
-            st.rerun()
-
-    st.divider()
-
-    st.subheader("📚 Knowledge Explorer")
-    with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items():
-            st.write(f"**{p}**: {d['description']}")
-
-    with st.expander("🌍 Scientific Paradigms"):
-        for p, d in KNOWLEDGE_BASE["paradigms"].items():
-            st.write(f"**{p}**: {d}")
-
+    st.subheader("📚 Quick Explore")
     with st.expander("🔬 Science Fields"):
-        # Urejeno po abecedi za lažji pregled
         for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
-            d = KNOWLEDGE_BASE["subject_details"][s]
-            st.write(f"• **{s}** ({d['cat']})")
-
-    with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-            st.write(f"**{m}**: {d}")
+            st.write(f"• {s}")
     
-    st.divider()
-
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
-    
-    st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
-# --- MAIN SELECTION INTERFACE ---
+# --- MAIN INTERFACE ---
 st.markdown("### 🛠️ Configure Your Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
@@ -255,9 +173,7 @@ with col2:
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 with col3:
-    # Urejen seznam znanosti
-    sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_science = st.selectbox("3. Science Field:", sciences_list)
+    selected_science = st.selectbox("3. Science Field:", sorted(list(KNOWLEDGE_BASE["subject_details"].keys())))
     selected_model = st.selectbox("4. Structural Model:", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
 
 st.divider()
@@ -268,42 +184,25 @@ with col4:
 with col5:
     selected_tool = st.selectbox("6. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
+user_query = st.text_area("❓ Your Inquiry:", placeholder="e.g. Synthesize the impact of AI on human language.")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI)
+# 3. SYNTHESIS EXECUTION
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Missing Groq API Key in the sidebar.")
+        st.error("Missing Groq API Key.")
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
-            p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
             
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
-            
-            USER ATTRIBUTES:
-            - Profile: {selected_profile} ({p_data['description']})
-            - Expertise Level: {expertise}
-            - Goal: {goal_context}
-            
-            DIMENSIONS:
-            - Paradigm: {selected_paradigm} ({KNOWLEDGE_BASE['paradigms'][selected_paradigm]})
-            - Science: {selected_science}
-            - Methodology: {selected_method}
-            - Tool: {selected_tool}
-            - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
-
-            CONSTRUCTION RULES:
-            1. Foundation: Use {selected_paradigm} as the logic base.
-            2. Bricks: Use {selected_science}, its methods and {selected_tool} as components.
-            3. Plan: Structure the output strictly according to the {selected_model} model. 
-               - If 'Glossary', prioritize technical definitions. 
-               - If 'Concepts', prioritize mental frameworks and maps.
-            4. Tone: Adjust for a {expertise} level. 
-            5. Language: English.
+            You are the SIS Universal Knowledge Synthesizer. 
+            User: {selected_profile} (Expertise: {expertise}).
+            Foundation: {selected_paradigm}.
+            Subject: {selected_science} using {selected_method}.
+            Structure: {selected_model}.
+            Respond in English.
             """
             
             with st.spinner('Building knowledge structure...'):
@@ -320,4 +219,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v3.0 Relief Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v3.2 Relief Tree | 2026")
