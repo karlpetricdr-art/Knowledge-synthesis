@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from openai import OpenAI
+from PIL import Image
 
 # =========================================================
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
@@ -104,7 +105,6 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Initialize Session State
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
@@ -112,13 +112,23 @@ st.markdown("Precision synthesis engine for **Personalized Knowledge Architectur
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    # IMAGE SAFETY CHECK: Preprečimo crash, če datoteka manjka
-    image_path = "input_file_2.jpeg"
-    if os.path.exists(image_path):
-        st.image(image_path, width=250)
-    else:
-        st.warning("Logo image 'input_file_2.jpeg' not found. Please upload it to GitHub.")
+    # --- IMPROVED IMAGE LOADING LOGIC ---
+    found_image = None
+    possible_names = ["input_file_2.jpeg", "input_file_2.jpg", "input_file_2.png", "input_file_2.JPEG", "input_file_2.JPG"]
     
+    for name in possible_names:
+        if os.path.exists(name):
+            found_image = name
+            break
+            
+    if found_image:
+        st.image(found_image, width=250)
+    else:
+        st.warning("⚠️ Logo 'input_file_2.jpeg' not detected.")
+        # Debug helper: List all files to see why it's missing
+        if st.checkbox("Debug: List files in folder"):
+            st.write(os.listdir("."))
+
     st.header("⚙️ Control Panel")
     
     api_key = st.text_input("Groq API Key:", type="password")
@@ -127,7 +137,6 @@ with st.sidebar:
     
     st.divider()
 
-    # Quick Guide
     with st.popover("📖 Lego Building Guide", use_container_width=True):
         st.markdown("""
         ### Synthesis Process:
@@ -137,7 +146,6 @@ with st.sidebar:
         4. **Target View:** Match with your **Profile**.
         """)
 
-    # Quick Mode Buttons
     st.subheader("🚀 Quick Templates")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -151,9 +159,7 @@ with st.sidebar:
 
     st.divider()
 
-    # --- ENHANCED SIDEBAR EXPLORER ---
     st.subheader("📚 Knowledge Explorer")
-    
     with st.expander("👤 User Profiles"):
         for p, d in KNOWLEDGE_BASE["profiles"].items():
             st.write(f"**{p}**: {d['description']}")
@@ -172,16 +178,13 @@ with st.sidebar:
     
     st.divider()
 
-    # Utilities
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
-# --- SIDEBAR END ---
-
-# MAIN SELECTION INTERFACE
+# --- MAIN SELECTION INTERFACE ---
 st.markdown("### 🛠️ Configure Your Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
@@ -216,45 +219,23 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
-            
             p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
             
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
-            
-            USER ATTRIBUTES:
-            - Profile: {selected_profile} ({p_data['description']})
-            - Expertise Level: {expertise}
-            - Goal: {goal_context}
-            
-            DIMENSIONS:
-            - Paradigm: {selected_paradigm} ({KNOWLEDGE_BASE['paradigms'][selected_paradigm]})
-            - Science: {selected_science}
-            - Methodology: {selected_method}
-            - Tool: {selected_tool}
-            - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
-
-            CONSTRUCTION RULES:
-            1. Use the Paradigm as the foundational logic.
-            2. Science and Tool are your primary bricks.
-            3. Apply the Structural Model as the architectural plan.
-            4. Adjust depth for a {expertise} level.
-            5. Response must be in English.
+            USER: Profile {selected_profile}, Level {expertise}, Goal {goal_context}.
+            DIMENSIONS: Paradigm {selected_paradigm}, Science {selected_science}, Method {selected_method}, Tool {selected_tool}, Structure {selected_model}.
+            RULES: Respond in English. Use Paradigm as foundation. Structure output according to {selected_model}.
             """
             
             with st.spinner('Assembling knowledge blocks...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_query}
-                    ],
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
-                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
-                
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
