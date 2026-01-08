@@ -4,30 +4,46 @@ import base64
 from openai import OpenAI
 
 # =========================================================
-# 0. EMBEDDED ICON (Stylized Pyramid & Tree of Knowledge)
+# 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
 # =========================================================
-# We use a custom SVG for maximum reliability and clean look.
-SVG_LOGO = """
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+# This creates a tactile, 3D relief style pyramid and tree.
+SVG_3D_RELIEF = """
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#2e7d32;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
+        <!-- Soft Shadow Filter for Relief Effect -->
+        <filter id="reliefShadow" x="-20%" y="-20%" width="150%" height="150%">
+            <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+        </filter>
+        <!-- Gradients for Depth -->
+        <linearGradient id="pyramidSide" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#e0e0e0;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#bdbdbd;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="treeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#66bb6a;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
         </linearGradient>
     </defs>
-    <!-- Pyramid Base -->
-    <path d="M20 180 L100 20 L180 180 Z" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
-    <path d="M100 20 L100 180" stroke="#ccc" stroke-width="1"/>
-    <!-- Tree Trunk inside Pyramid -->
-    <rect x="95" y="100" width="10" height="80" fill="#5d4037" />
-    <!-- Tree Leaves / Knowledge Nodes -->
-    <circle cx="100" cy="80" r="35" fill="url(#grad1)" opacity="0.9"/>
-    <circle cx="80" cy="110" r="25" fill="#43a047" opacity="0.8"/>
-    <circle cx="120" cy="110" r="25" fill="#43a047" opacity="0.8"/>
-    <!-- Decorative Knowledge Blocks -->
-    <rect x="40" y="160" width="15" height="15" fill="#1565c0" />
-    <rect x="145" y="160" width="15" height="15" fill="#c62828" />
-    <rect x="92" y="40" width="16" height="16" fill="#f9a825" />
+    
+    <!-- Background Relief Circle -->
+    <circle cx="120" cy="120" r="100" fill="#f0f0f0" filter="url(#reliefShadow)" />
+
+    <!-- 3D Pyramid (Two-tone for depth) -->
+    <path d="M120 40 L50 180 L120 200 Z" fill="url(#pyramidSide)" />
+    <path d="M120 40 L190 180 L120 200 Z" fill="#9e9e9e" />
+    
+    <!-- Tree Trunk -->
+    <rect x="116" y="110" width="8" height="70" rx="2" fill="#5d4037" />
+    
+    <!-- 3D Spheres (Knowledge Nodes) -->
+    <circle cx="120" cy="85" r="30" fill="url(#treeGrad)" filter="url(#reliefShadow)" />
+    <circle cx="95" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
+    <circle cx="145" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
+    
+    <!-- Floating 'Lego' Knowledge Bricks -->
+    <rect x="70" y="170" width="20" height="12" rx="2" fill="#1565c0" filter="url(#reliefShadow)" />
+    <rect x="150" y="170" width="20" height="12" rx="2" fill="#c62828" filter="url(#reliefShadow)" />
+    <rect x="110" y="185" width="20" height="12" rx="2" fill="#f9a825" filter="url(#reliefShadow)" />
 </svg>
 """
 
@@ -138,15 +154,15 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Precision synthesis engine for **Personalized Knowledge Architecture**.")
+st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    # DISPLAY EMBEDDED LOGO
+    # DISPLAY 3D RELIEF LOGO
     st.markdown(
         f"""
-        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-            <img src="data:image/svg+xml;base64,{get_svg_base64(SVG_LOGO)}" width="180">
+        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+            <img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220">
         </div>
         """,
         unsafe_allow_html=True
@@ -164,7 +180,7 @@ with st.sidebar:
         ### Synthesis Process:
         1. **Foundation:** Choose your **Paradigm**.
         2. **Bricks:** Select **Science**, **Method**, and **Tool**.
-        3. **Building Plan:** Select the **Structural Model**.
+        3. **Building Plan:** Select the **Structural Model** (Glossary, Concepts, etc.).
         4. **Target View:** Match with your **Profile**.
         """)
 
@@ -230,7 +246,7 @@ with col4:
 with col5:
     selected_tool = st.selectbox("6. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. How do we explain the evolution of social structures using these dimensions?")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -259,20 +275,19 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
 
             CONSTRUCTION RULES:
-            1. Use the Paradigm as the foundational logic.
-            2. Science and Tool are your primary bricks.
-            3. Apply the Structural Model as the architectural plan.
-            4. Adjust depth for a {expertise} level.
-            5. Response must be in English.
+            1. Foundation: Use {selected_paradigm} as the logic base.
+            2. Bricks: Use {selected_science}, its methods and {selected_tool} as components.
+            3. Plan: Structure the output strictly according to the {selected_model} model. 
+               - If 'Glossary', prioritize technical definitions. 
+               - If 'Concepts', prioritize mental frameworks and maps.
+            4. Tone: Adjust for a {expertise} level. 
+            5. Language: English.
             """
             
-            with st.spinner('Assembling knowledge blocks...'):
+            with st.spinner('Building knowledge structure...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_query}
-                    ],
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
                 
@@ -283,4 +298,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | Powered by Groq AI | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v3.0 Relief Edition | 2026")
