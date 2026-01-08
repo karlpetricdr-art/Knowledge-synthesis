@@ -21,6 +21,7 @@ SVG_3D_RELIEF = """
             <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
         </linearGradient>
     </defs>
+    
     <circle cx="120" cy="120" r="100" fill="#f0f0f0" stroke="#000000" stroke-width="4" filter="url(#reliefShadow)" />
     <path d="M120 40 L50 180 L120 200 Z" fill="url(#pyramidSide)" />
     <path d="M120 40 L190 180 L120 200 Z" fill="#9e9e9e" />
@@ -41,24 +42,24 @@ def get_svg_base64(svg_str):
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
-    # NOVO: Mentalni pristopi iz sheme
+    # NOVO: Dimenzija mentalnih pristopov
     "mental_approaches": [
         "Perspective shifting",
+        "Induction",
+        "Deduction",
+        "Hierarchy",
+        "Mini-max",
+        "Whole and part",
+        "Addition and composition",
+        "Balance",
+        "Abstraction and elimination",
+        "Openness and closedness",
+        "Bipolarity and dialectics",
+        "Framework and foundation",
+        "Pleasure and displeasure",
         "Similarity and difference",
         "Core (Attraction & Repulsion)",
         "Condensation",
-        "Framework and foundation",
-        "Bipolarity and dialectics",
-        "Induction",
-        "Whole and part",
-        "Mini-max",
-        "Addition and composition",
-        "Balance",
-        "Hierarchy",
-        "Deduction",
-        "Abstraction and elimination",
-        "Openness and closedness",
-        "Pleasure and displeasure",
         "Constant",
         "Associativity"
     ],
@@ -71,31 +72,31 @@ KNOWLEDGE_BASE = {
     "paradigms": {
         "Empiricism": "Knowledge based on sensory experience.",
         "Rationalism": "Knowledge based on deductive logic.",
-        "Constructivism": "Knowledge as a social/cognitive construction.",
+        "Constructivism": "Knowledge as a social and cognitive construction.",
         "Positivism": "Strict adherence to verifiable facts.",
-        "Pragmatism": "Knowledge validated by practical success."
+        "Pragmatism": "Knowledge validated by practical consequences."
     },
     "knowledge_models": {
         "Causal Connections": "Chain of causes and effects.",
         "Principles & Relations": "Constant laws and correlations.",
-        "Episodes & Sequences": "Chronological narrative processes.",
+        "Episodes & Sequences": "Chronological flow and narrative.",
         "Facts & Characteristics": "Raw data and properties.",
         "Generalizations": "Broad universal frameworks.",
-        "Glossary": "Precise technical definitions.",
-        "Concepts": "Conceptual maps and mental constructs."
+        "Glossary": "Precise definitions.",
+        "Concepts": "Conceptual maps and abstract constructs."
     },
     "subject_details": {
+        "Neuroscience": {"cat": "Natural Sciences", "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"], "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"]},
         "Physics": {"cat": "Natural Sciences", "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"], "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"]},
         "Chemistry": {"cat": "Natural Sciences", "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"], "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"]},
         "Biology": {"cat": "Natural Sciences", "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"], "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"]},
-        "Neuroscience": {"cat": "Natural Sciences", "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"], "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"]},
-        "Psychology": {"cat": "Social Sciences", "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"], "tools": ["fMRI Scanner", "EEG", "Testing Kits"]},
-        "Sociology": {"cat": "Social Sciences", "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"], "tools": ["Data Analytics Software", "Archival Records", "Network Tools"]},
+        "Psychology": {"cat": "Social Sciences", "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"], "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"]},
+        "Sociology": {"cat": "Social Sciences", "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"], "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"]},
         "Computer Science": {"cat": "Formal Sciences", "methods": ["Algorithm Design", "Formal Verification", "Agile Development"], "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"]},
         "Medicine": {"cat": "Applied Sciences", "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"], "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"]},
         "Engineering": {"cat": "Applied Sciences", "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"], "tools": ["3D Printers", "CAD Software", "Oscilloscopes"]},
         "Library Science": {"cat": "Applied Sciences", "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"], "tools": ["OPAC Systems", "Metadata Schemas", "Digital Repositories"]},
-        "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"], "tools": ["Library Archives", "Logic Mapping Tools", "Text Analysis"]},
+        "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"], "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"]},
         "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"], "tools": ["Praat", "NLTK", "Concordance Software"]}
     }
 }
@@ -118,13 +119,14 @@ with st.sidebar:
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-    with st.expander("🧠 Mental Approaches"):
+    with st.expander("🧠 Mental Approaches Explorer"):
         st.write(", ".join(KNOWLEDGE_BASE["mental_approaches"]))
-    
+
     with st.expander("🔬 Science Fields"):
         for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
             st.write(f"• **{s}**")
 
+    st.divider()
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
@@ -147,10 +149,10 @@ with col3:
 
 st.divider()
 
-# VRSTICA Z MENTALNIM PRISTOPOM, METODOLOGIJO IN ORODJI
+# VRSTICA 2: Mental Approaches, Methodology in Tools
 col4, col5, col6 = st.columns(3)
 with col4:
-    # DODANO PRED METHODOLOGY
+    # MENTAL APPROACH POSTAVLJEN PRED METHODOLOGY
     selected_approach = st.selectbox("5. Mental Approach:", KNOWLEDGE_BASE["mental_approaches"])
 with col5:
     selected_method = st.selectbox("6. Methodology:", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
@@ -160,7 +162,7 @@ with col6:
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC
+# 3. CORE SYNTHESIS LOGIC (Groq AI)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
@@ -171,25 +173,25 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
             
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. Use 'Lego Logic' to build knowledge.
+            You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
             
-            USER ATTRIBUTES:
+            USER CONTEXT:
             - Profile: {selected_profile} ({p_data['description']})
             - Expertise: {expertise}
             
-            DIMENSIONS:
+            COGNITIVE DIMENSIONS:
             - Paradigm: {selected_paradigm}
-            - Mental Approach: {selected_approach} (Process all logic through this cognitive lens)
+            - Mental Approach: {selected_approach} (MANDATORY: Process the logic through this specific lens)
             - Science: {selected_science}
             - Methodology: {selected_method}
             - Tool: {selected_tool}
             - Structural Model: {selected_model}
 
-            INSTRUCTIONS:
-            1. Frame the entire answer through the '{selected_approach}' mental approach.
-            2. Apply {selected_method} and {selected_tool} within the {selected_science} context.
-            3. Strictly follow the {selected_model} structure.
-            4. Tone: {expertise}. Language: English.
+            CONSTRUCTION RULES:
+            1. Use {selected_paradigm} as the logical foundation.
+            2. Apply the '{selected_approach}' mental approach as the primary cognitive filter for synthesis.
+            3. Structure the output strictly according to the {selected_model} framework.
+            4. Adjust complexity for {expertise} level. Language: English.
             """
             
             with st.spinner('Building knowledge structure...'):
@@ -205,4 +207,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v3.5 Mental Approaches Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v3.6 Mental Approaches Edition | 2026")
