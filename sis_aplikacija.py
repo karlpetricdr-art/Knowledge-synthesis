@@ -101,7 +101,7 @@ KNOWLEDGE_BASE = {
 # =========================================================
 # 2. STREAMLIT INTERFACE
 # =========================================================
-st.set_page_config(page_title="SIS Synthesizer", page_icon="🧱", layout="wide")
+st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
 # Initialize Session State
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
@@ -111,7 +111,8 @@ st.markdown("Precision synthesis engine for **Personalized Knowledge Architectur
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/lego-head.png", width=80)
+    # OPTIMIZED IMAGE SIZE: Added fixed width to prevent the icon from being too large
+    st.image("input_file_2.jpeg", width=250)
     st.header("⚙️ Control Panel")
     
     api_key = st.text_input("Groq API Key:", type="password")
