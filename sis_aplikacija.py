@@ -3,29 +3,41 @@ import json
 from openai import OpenAI
 
 # =========================================================
-# 1. THE MULTIDIMENSIONAL LEGO ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "profiles": {
-        "Adventurers": {"drivers": "exploration / discovery", "description": "Explorers of new frontiers and hidden patterns."},
-        "Applicators": {"drivers": "utility / results", "description": "Practical minds focused on 'how to make it work'."},
-        "Know-it-alls": {"drivers": "total synthesis", "description": "Seekers of a unified theory and absolute clarity."},
-        "Observers": {"drivers": "detached analysis", "description": "Quiet analysts focused on system evolution and patterns."}
+        "Adventurers": {
+            "drivers": "cross-disciplinary exploration / discovery",
+            "description": "Explorers seeking to connect distant fields and find hidden patterns in new territories."
+        },
+        "Applicators": {
+            "drivers": "practical utility / real-world implementation",
+            "description": "Pragmatic minds focused on efficiency, usability, and solving concrete challenges."
+        },
+        "Know-it-alls": {
+            "drivers": "foundational unity / total synthesis",
+            "description": "Systemic thinkers seeking a unified theory of everything and absolute logical clarity."
+        },
+        "Observers": {
+            "drivers": "systemic evolution / pattern recognition",
+            "description": "Detached analysts who monitor how systems change over time without direct intervention."
+        }
     },
     "paradigms": {
-        "Empiricism": "Knowledge based on sensory experience and evidence-based data.",
-        "Rationalism": "Knowledge based on reason, logic, and innate intellectual structures.",
-        "Constructivism": "Knowledge as a subjective construction of reality and social interaction.",
-        "Positivism": "Knowledge strictly based on observable, verifiable, and measurable facts.",
-        "Pragmatism": "Knowledge validated by its practical consequences and problem-solving utility."
+        "Empiricism": "Knowledge based on sensory experience, experimental evidence, and data-driven induction.",
+        "Rationalism": "Knowledge based on deductive logic, mathematical certainty, and innate intellectual principles.",
+        "Constructivism": "Knowledge as a social and cognitive construction based on experience and context.",
+        "Positivism": "Strict adherence to observable, measurable, and scientifically verifiable facts.",
+        "Pragmatism": "Knowledge validated by its practical consequences and success in application."
     },
     "knowledge_models": {
-        "Causal Connections": "Analyzing causes, effects, and the 'why' behind phenomena.",
-        "Principles & Relations": "Focusing on fundamental laws, correlations, and constant relationships.",
-        "Episodes & Sequences": "Structuring knowledge as a flow of events, time sequences, and processes.",
-        "Facts & Characteristics": "Focusing on raw data, properties of things, and specific observations.",
-        "Generalizations": "Moving from specific locations/materials to broad conceptual frameworks.",
-        "Glossary & Concepts": "Establishing clear definitions, labels, and conceptual vocabularies."
+        "Causal Connections": "Analyzing the chain of causes, effects, and the 'why' behind phenomena.",
+        "Principles & Relations": "Focusing on constant laws, fundamental correlations, and relational structures.",
+        "Episodes & Sequences": "Organizing knowledge as a chronological flow, event sequences, and narrative processes.",
+        "Facts & Characteristics": "Focusing on properties of living/inanimate objects and raw observational data.",
+        "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
+        "Glossary & Concepts": "Defining precise terminologies, subject labels, and situational conceptual maps."
     },
     "subject_details": {
         "Physics": {
@@ -61,7 +73,7 @@ KNOWLEDGE_BASE = {
         "Computer Science": {
             "cat": "Formal Sciences",
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": ["Integrated Development Environments (IDE)", "Version Control (Git)", "GPU Clusters"],
+            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
             "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
         },
         "Medicine": {
@@ -86,12 +98,12 @@ KNOWLEDGE_BASE = {
 }
 
 # =========================================================
-# 2. STREAMLIT INTERFACE (Advanced Layout)
+# 2. STREAMLIT INTERFACE
 # =========================================================
-st.set_page_config(page_title="SIS Epistemic Synthesizer", page_icon="🧱", layout="wide")
+st.set_page_config(page_title="SIS Synthesizer", page_icon="🧱", layout="wide")
 
-st.title("🧱 SIS - Universal Epistemic Synthesizer")
-st.markdown("A multidimensional engine for **Knowledge Architecture** based on your Lego Taxonomy.")
+st.title("🧱 SIS Universal Knowledge Synthesizer")
+st.markdown("Precision synthesis engine for **Personalized Knowledge Architecture**.")
 
 with st.sidebar:
     st.header("⚙️ Configuration")
@@ -101,89 +113,99 @@ with st.sidebar:
     
     st.divider()
     st.subheader("📚 Knowledge Explorer")
-    show_db = st.toggle("Enable Explorer Mode", help="Browse all scientific dimensions.")
+    show_db = st.toggle("Enable Explorer Mode", help="Browse the internal ontology.")
     
     if show_db:
-        with st.expander("👤 Profiles"):
+        with st.expander("👤 User Profiles"):
             for p, d in KNOWLEDGE_BASE["profiles"].items():
                 st.write(f"**{p}**: {d['description']}")
-        with st.expander("🌍 Paradigms"):
+        with st.expander("🌍 Paradigms & Models"):
+            st.write("--- Paradigms ---")
             for p, d in KNOWLEDGE_BASE["paradigms"].items():
-                st.write(f"**{p}**: {d}")
-        with st.expander("🏗️ Structural Models"):
+                st.write(f"*{p}*: {d}")
+            st.write("--- Structures (from Image) ---")
             for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-                st.write(f"**{m}**: {d}")
-        with st.expander("🔬 Sciences & Tools"):
-            for s, d in KNOWLEDGE_BASE["subject_details"].items():
-                st.caption(f"{s}: {', '.join(d['tools'])}")
+                st.write(f"*{m}*: {d}")
 
 # MAIN SELECTION INTERFACE
-st.markdown("### 🛠️ Configure Your Knowledge Build")
-row1_col1, row1_col2, row1_col3 = st.columns(3)
-with row1_col1:
-    selected_profile = st.selectbox("1. User Profile (The Who):", list(KNOWLEDGE_BASE["profiles"].keys()))
-with row1_col2:
-    selected_paradigm = st.selectbox("2. Paradigm (The View):", list(KNOWLEDGE_BASE["paradigms"].keys()))
-with row1_col3:
-    selected_science = st.selectbox("3. Science (The Block):", list(KNOWLEDGE_BASE["subject_details"].keys()))
+st.markdown("### 🛠️ Define Your Cognitive Context")
+col1, col2, col3 = st.columns(3)
 
-row2_col1, row2_col2, row2_col3 = st.columns(3)
-with row2_col1:
-    selected_method = st.selectbox("4. Methodology (The Way):", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
-with row2_col2:
-    selected_tool = st.selectbox("5. Specific Tool (The Instrument):", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
-with row2_col3:
-    selected_model = st.selectbox("6. Knowledge Model (The Structure):", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
+with col1:
+    # Profiles kept as Adventurers, Applicators, Know-it-alls, Observers
+    selected_profile = st.selectbox("1. User Profile:", list(KNOWLEDGE_BASE["profiles"].keys()))
+    expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"])
 
-user_query = st.text_area("❓ Synthesis Question:", 
-                         placeholder="e.g. How do we explain consciousness through these layers?")
+with col2:
+    selected_paradigm = st.selectbox("2. Scientific Paradigm:", list(KNOWLEDGE_BASE["paradigms"].keys()))
+    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational / Teaching"])
+
+with col3:
+    selected_science = st.selectbox("3. Science Field:", list(KNOWLEDGE_BASE["subject_details"].keys()))
+    selected_model = st.selectbox("4. Structural Model:", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
+
+st.divider()
+
+col4, col5 = st.columns(2)
+with col4:
+    selected_method = st.selectbox("5. Methodology:", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
+with col5:
+    selected_tool = st.selectbox("6. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
+
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. How do we explain the evolution of social structures using these dimensions?")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
 # =========================================================
-if st.button("🚀 Run Multi-Dimensional Synthesis", use_container_width=True):
+if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Please provide a Groq API Key.")
+        st.error("Missing Groq API Key in the sidebar.")
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            p_info = KNOWLEDGE_BASE["profiles"][selected_profile]
-            paradigm_info = KNOWLEDGE_BASE["paradigms"][selected_paradigm]
-            model_info = KNOWLEDGE_BASE["knowledge_models"][selected_model]
+            p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
             
-            prompt = f"""
-            You are the SIS Synthesizer. Synthesize a response based on these 6 Lego dimensions:
+            system_prompt = f"""
+            You are the SIS Universal Knowledge Synthesizer. You construct knowledge using 'Lego Logic'.
             
-            1. USER PROFILE: {selected_profile} (Driver: {p_info['drivers']})
-            2. PARADIGM: {selected_paradigm} ({paradigm_info})
-            3. SCIENCE FIELD: {selected_science}
-            4. METHODOLOGY: {selected_method}
-            5. TOOL: {selected_tool}
-            6. KNOWLEDGE MODEL STRUCTURE: {selected_model} ({model_info})
+            USER ATTRIBUTES:
+            - Profile: {selected_profile} ({p_data['description']})
+            - Expertise Level: {expertise} (Adjust depth, complexity, and vocabulary for this level)
+            - Goal/Context: {goal_context} (Focus synthesis results on this specific intent)
+            
+            EPISTEMIC DIMENSIONS:
+            - Paradigm: {selected_paradigm} ({KNOWLEDGE_BASE['paradigms'][selected_paradigm]})
+            - Science: {selected_science}
+            - Methodology: {selected_method}
+            - Tool: {selected_tool}
+            - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
 
-            INSTRUCTIONS:
-            - Foundation: Start with the {selected_paradigm} view.
-            - Building Blocks: Use {selected_science} and {selected_tool} as your primary materials.
-            - Architecture: Organize the logic using the {selected_model} structure (e.g., focus on causes/effects or sequences).
-            - Goal: Satisfy the {selected_profile}'s core driver.
-            
-            Tone: Professional, academic, yet structured like a 'Lego build' explanation.
-            Language: English.
+            CONSTRUCTION RULES:
+            1. Use the Paradigm as the foundational logic for the entire answer.
+            2. Use the Science and Tool as the physical 'Lego Bricks' to build the argument.
+            3. Apply the Structural Model as the architectural 'Building Plan' (e.g., focus on Causal chains or Episodes).
+            4. Tailor the language strictly to a {expertise} audience. 
+            5. Ensure the final synthesis serves the objective of {goal_context}.
+
+            Format the response with professional markdown headings. Output language: English.
             """
             
-            with st.spinner('Assembling knowledge layers...'):
+            with st.spinner(f'Synthesizing {expertise} level blocks for {selected_profile}...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[{"role": "system", "content": prompt}, {"role": "user", "content": user_query}],
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_query}
+                    ],
                     temperature=0.6
                 )
                 
-                st.subheader("📊 Synthesis Result")
+                st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
         except Exception as e:
-            st.error(f"Synthesis failed: {e}")
+            st.error(f"Synthesis error: {e}")
 
 st.divider()
-st.caption("SIS Global Epistemic Architecture | 2025 Edition | Multi-Dimensional Framework")
+st.caption("SIS Universal Knowledge Synthesizer | Powered by Groq AI | 2026 Framework")
