@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import os
 from openai import OpenAI
 
 # =========================================================
@@ -111,8 +112,13 @@ st.markdown("Precision synthesis engine for **Personalized Knowledge Architectur
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    # OPTIMIZED IMAGE SIZE: Added fixed width to prevent the icon from being too large
-    st.image("input_file_2.jpeg", width=250)
+    # IMAGE SAFETY CHECK: Preprečimo crash, če datoteka manjka
+    image_path = "input_file_2.jpeg"
+    if os.path.exists(image_path):
+        st.image(image_path, width=250)
+    else:
+        st.warning("Logo image 'input_file_2.jpeg' not found. Please upload it to GitHub.")
+    
     st.header("⚙️ Control Panel")
     
     api_key = st.text_input("Groq API Key:", type="password")
@@ -127,7 +133,7 @@ with st.sidebar:
         ### Synthesis Process:
         1. **Foundation:** Choose your **Paradigm**.
         2. **Bricks:** Select **Science**, **Method**, and **Tool**.
-        3. **Building Plan:** Select the **Structural Model** (Glossary, Causal, etc.).
+        3. **Building Plan:** Select the **Structural Model**.
         4. **Target View:** Match with your **Profile**.
         """)
 
@@ -137,9 +143,11 @@ with st.sidebar:
     with col_t1:
         if st.button("🎓 Academic", use_container_width=True):
             st.session_state.expertise_val = "Expert"
+            st.rerun()
     with col_t2:
         if st.button("👶 Learner", use_container_width=True):
             st.session_state.expertise_val = "Novice"
+            st.rerun()
 
     st.divider()
 
@@ -158,16 +166,6 @@ with st.sidebar:
         for s, d in KNOWLEDGE_BASE["subject_details"].items():
             st.write(f"• **{s}** ({d['cat']})")
 
-    with st.expander("🛠️ Methodologies"):
-        all_methods = sorted(list(set([m for s in KNOWLEDGE_BASE["subject_details"].values() for m in s["methods"]])))
-        for m in all_methods:
-            st.write(f"• {m}")
-
-    with st.expander("🔧 Specific Tools"):
-        all_tools = sorted(list(set([t for s in KNOWLEDGE_BASE["subject_details"].values() for t in s["tools"]])))
-        for t in all_tools:
-            st.write(f"• {t}")
-
     with st.expander("🏗️ Structural Models"):
         for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
             st.write(f"**{m}**: {d}")
@@ -176,6 +174,7 @@ with st.sidebar:
 
     # Utilities
     if st.button("♻️ Reset Session", use_container_width=True):
+        st.session_state.clear()
         st.rerun()
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
@@ -202,10 +201,8 @@ st.divider()
 
 col4, col5 = st.columns(2)
 with col4:
-    # Dynamically filter methods based on science
     selected_method = st.selectbox("5. Methodology:", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
 with col5:
-    # Dynamically filter tools based on science
     selected_tool = st.selectbox("6. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
 
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize the relationship between entropy and information theory.")
@@ -240,7 +237,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             CONSTRUCTION RULES:
             1. Use the Paradigm as the foundational logic.
             2. Science and Tool are your primary bricks.
-            3. Apply the Structural Model as the architectural plan. If 'Glossary', focus on terminology. If 'Concepts', focus on mental maps.
+            3. Apply the Structural Model as the architectural plan.
             4. Adjust depth for a {expertise} level.
             5. Response must be in English.
             """
