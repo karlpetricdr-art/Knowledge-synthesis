@@ -3,244 +3,187 @@ import json
 from openai import OpenAI
 
 # =========================================================
-# 1. EXPANDED LEGO ONTOLOGY (Sciences + Methodologies)
+# 1. THE MULTIDIMENSIONAL LEGO ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "profiles": {
-        "Adventurers": {
-            "subjects": ["Astronomy", "Earth Sciences", "Anthropology", "Biology", "Geography", "Archaeology"],
-            "drivers": "exploration / discovery of the unknown",
-            "description": "Explorers of physical and temporal boundaries."
-        },
-        "Applicators": {
-            "subjects": ["Medicine", "Engineering", "Computer Science", "Economics", "Chemistry", "Psychology"],
-            "drivers": "practical utility / problem solving",
-            "description": "Focus on applying knowledge to create tangible solutions."
-        },
-        "Know-it-alls": {
-            "subjects": ["Physics", "Mathematics", "Philosophy", "Logic", "History", "Chemistry", "Biology", "Sociology", "Economics"],
-            "drivers": "universal synthesis / absolute knowledge",
-            "description": "Seek to master all disciplines and find the 'Theory of Everything'."
-        },
-        "Observers": {
-            "subjects": ["Sociology", "Political Science", "Statistics", "Ecology", "Linguistics", "Psychology"],
-            "drivers": "pattern recognition / systematic analysis",
-            "description": "Detached analytical minds watching how systems and societies evolve."
-        }
+        "Adventurers": {"drivers": "exploration / discovery", "description": "Explorers of new frontiers and hidden patterns."},
+        "Applicators": {"drivers": "utility / results", "description": "Practical minds focused on 'how to make it work'."},
+        "Know-it-alls": {"drivers": "total synthesis", "description": "Seekers of a unified theory and absolute clarity."},
+        "Observers": {"drivers": "detached analysis", "description": "Quiet analysts focused on system evolution and patterns."}
+    },
+    "paradigms": {
+        "Empiricism": "Knowledge based on sensory experience and evidence-based data.",
+        "Rationalism": "Knowledge based on reason, logic, and innate intellectual structures.",
+        "Constructivism": "Knowledge as a subjective construction of reality and social interaction.",
+        "Positivism": "Knowledge strictly based on observable, verifiable, and measurable facts.",
+        "Pragmatism": "Knowledge validated by its practical consequences and problem-solving utility."
+    },
+    "knowledge_models": {
+        "Causal Connections": "Analyzing causes, effects, and the 'why' behind phenomena.",
+        "Principles & Relations": "Focusing on fundamental laws, correlations, and constant relationships.",
+        "Episodes & Sequences": "Structuring knowledge as a flow of events, time sequences, and processes.",
+        "Facts & Characteristics": "Focusing on raw data, properties of things, and specific observations.",
+        "Generalizations": "Moving from specific locations/materials to broad conceptual frameworks.",
+        "Glossary & Concepts": "Establishing clear definitions, labels, and conceptual vocabularies."
     },
     "subject_details": {
-        # NATURAL SCIENCES
         "Physics": {
-            "facets": ["quantum mechanics", "relativity", "electromagnetism", "thermodynamics"],
-            "methods": ["Experimental Method", "Mathematical Modeling", "Computational Simulation", "Spectroscopy"],
-            "type": "Natural Sciences"
+            "cat": "Natural Sciences",
+            "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"],
+            "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
+            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
         },
         "Chemistry": {
-            "facets": ["molecular bonding", "organic synthesis", "electrochemistry", "biochemistry"],
-            "methods": ["Titration", "Chromatography", "X-ray Crystallography", "Chemical Synthesis"],
-            "type": "Natural Sciences"
+            "cat": "Natural Sciences",
+            "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"],
+            "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"],
+            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry"]
         },
         "Biology": {
-            "facets": ["genetics", "evolution", "cell biology", "microbiology"],
-            "methods": ["CRISPR Gene Editing", "Microscopy", "Field Observation", "DNA Sequencing"],
-            "type": "Natural Sciences"
+            "cat": "Natural Sciences",
+            "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"],
+            "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
+            "facets": ["Genetics", "Cell Biology", "Ecology"]
         },
-        "Astronomy": {
-            "facets": ["cosmology", "astrophysics", "black holes", "stellar evolution"],
-            "methods": ["Photometry", "Radio Astronomy", "Spectroscopic Analysis", "Orbital Mechanics"],
-            "type": "Natural Sciences"
-        },
-        "Earth Sciences": {
-            "facets": ["geology", "meteorology", "oceanography", "climatology"],
-            "methods": ["Seismic Mapping", "Carbon Dating", "Remote Sensing", "Climate Modeling"],
-            "type": "Natural Sciences"
-        },
-        # SOCIAL SCIENCES
         "Psychology": {
-            "facets": ["behavioral patterns", "cognition", "neuroscience", "developmental stages"],
-            "methods": ["Double-Blind Trials", "Case Studies", "Psychometrics", "Neuroimaging (fMRI)"],
-            "type": "Social Sciences"
+            "cat": "Social Sciences",
+            "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
+            "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
+            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
         },
         "Sociology": {
-            "facets": ["social stratification", "cultural norms", "group dynamics", "urbanization"],
-            "methods": ["Ethnography", "Statistical Surveys", "Content Analysis", "Longitudinal Studies"],
-            "type": "Social Sciences"
-        },
-        "Economics": {
-            "facets": ["macroeconomics", "microeconomics", "game theory", "market cycles"],
-            "methods": ["Econometrics", "Cost-Benefit Analysis", "Game Theoretic Modeling", "Regression Analysis"],
-            "type": "Social Sciences"
-        },
-        "Political Science": {
-            "facets": ["geopolitics", "governance", "public policy", "political theory"],
-            "methods": ["Comparative Analysis", "Policy Evaluation", "Discourse Analysis", "Poll Analysis"],
-            "type": "Social Sciences"
-        },
-        "History": {
-            "facets": ["historiography", "chronology", "cultural heritage", "genealogy"],
-            "methods": ["Archival Research", "Paleography", "Source Criticism", "Oral History"],
-            "type": "Social Sciences"
-        },
-        "Linguistics": {
-            "facets": ["syntax", "semantics", "phonetics", "etymology"],
-            "methods": ["Corpus Analysis", "Phonetic Transcription", "Comparative Linguistics", "Field Linguistics"],
-            "type": "Social Sciences"
-        },
-        # FORMAL SCIENCES
-        "Mathematics": {
-            "facets": ["calculus", "linear algebra", "topology", "number theory"],
-            "methods": ["Axiomatic Method", "Mathematical Proof", "Statistical Inference", "Algorithm Design"],
-            "type": "Formal Sciences"
-        },
-        "Logic": {
-            "facets": ["syllogisms", "symbolic logic", "boolean algebra", "paradoxes"],
-            "methods": ["Deductive Reasoning", "Formal Verification", "Truth Tables", "Predicate Logic"],
-            "type": "Formal Sciences"
+            "cat": "Social Sciences",
+            "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"],
+            "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"],
+            "facets": ["Social Stratification", "Group Dynamics", "Urbanization"]
         },
         "Computer Science": {
-            "facets": ["algorithms", "artificial intelligence", "cybersecurity", "data structures"],
-            "methods": ["Agile Development", "Big Data Analytics", "Machine Learning Training", "Heuristic Search"],
-            "type": "Formal Sciences"
+            "cat": "Formal Sciences",
+            "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
+            "tools": ["Integrated Development Environments (IDE)", "Version Control (Git)", "GPU Clusters"],
+            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
         },
-        # APPLIED SCIENCES
         "Medicine": {
-            "facets": ["anatomy", "pharmacology", "pathology", "immunology"],
-            "methods": ["Clinical Trials", "Epidemiological Studies", "Diagnostic Imaging", "Biopsies"],
-            "type": "Applied Sciences"
+            "cat": "Applied Sciences",
+            "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"],
+            "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"],
+            "facets": ["Pathology", "Immunology", "Pharmacology"]
         },
         "Engineering": {
-            "facets": ["robotics", "mechanical systems", "nanotechnology", "aerospace"],
-            "methods": ["Prototyping", "Finite Element Analysis", "CAD Design", "Systems Engineering"],
-            "type": "Applied Sciences"
+            "cat": "Applied Sciences",
+            "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
+            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
+            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
         },
         "Philosophy": {
-            "facets": ["metaphysics", "ethics", "epistemology", "ontology"],
-            "methods": ["Socratic Method", "Phenomenology", "Conceptual Analysis", "Thought Experiments"],
-            "type": "Applied Sciences / Humanities"
+            "cat": "Humanities",
+            "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
+            "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
+            "facets": ["Ethics", "Metaphysics", "Epistemology"]
         }
     }
 }
 
-# Categorization for Explorer
-SCIENCE_CATEGORIES = {
-    "Natural Sciences": ["Physics", "Chemistry", "Biology", "Astronomy", "Earth Sciences"],
-    "Social Sciences": ["Psychology", "Sociology", "Economics", "Political Science", "History", "Linguistics"],
-    "Formal Sciences": ["Mathematics", "Logic", "Computer Science"],
-    "Applied Sciences": ["Medicine", "Engineering", "Philosophy"]
-}
-
 # =========================================================
-# 2. INTERFACE (Streamlit)
+# 2. STREAMLIT INTERFACE (Advanced Layout)
 # =========================================================
-st.set_page_config(page_title="SIS Universal Synthesizer", page_icon="🧱", layout="wide")
+st.set_page_config(page_title="SIS Epistemic Synthesizer", page_icon="🧱", layout="wide")
 
-st.title("🧱 SIS - Universal Knowledge & Methodology Synthesizer")
-st.markdown("Advanced engine synthesizing **Profiles**, **Sciences**, and **Research Methodologies**.")
+st.title("🧱 SIS - Universal Epistemic Synthesizer")
+st.markdown("A multidimensional engine for **Knowledge Architecture** based on your Lego Taxonomy.")
 
 with st.sidebar:
     st.header("⚙️ Configuration")
     api_key = st.text_input("Enter Groq API Key:", type="password")
-    
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-    
-    # --- MODERN KNOWLEDGE EXPLORER ---
     st.subheader("📚 Knowledge Explorer")
-    show_db = st.toggle("Enable Explorer View", help="Browse the Lego-like ontology of sciences and methods.")
+    show_db = st.toggle("Enable Explorer Mode", help="Browse all scientific dimensions.")
     
     if show_db:
-        with st.expander("👤 User Profiles", expanded=True):
-            for name, info in KNOWLEDGE_BASE["profiles"].items():
-                st.markdown(f"**{name}**")
-                st.caption(info["description"])
-                st.write(f"*Drivers:* {info['drivers']}")
-                st.divider()
+        with st.expander("👤 Profiles"):
+            for p, d in KNOWLEDGE_BASE["profiles"].items():
+                st.write(f"**{p}**: {d['description']}")
+        with st.expander("🌍 Paradigms"):
+            for p, d in KNOWLEDGE_BASE["paradigms"].items():
+                st.write(f"**{p}**: {d}")
+        with st.expander("🏗️ Structural Models"):
+            for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
+                st.write(f"**{m}**: {d}")
+        with st.expander("🔬 Sciences & Tools"):
+            for s, d in KNOWLEDGE_BASE["subject_details"].items():
+                st.caption(f"{s}: {', '.join(d['tools'])}")
 
-        with st.expander("🔬 Scientific Fields & Methods"):
-            for cat, subjects in SCIENCE_CATEGORIES.items():
-                st.markdown(f"**{cat}**")
-                for sub in subjects:
-                    if sub in KNOWLEDGE_BASE["subject_details"]:
-                        details = KNOWLEDGE_BASE["subject_details"][sub]
-                        with st.popover(f"Explore {sub}", use_container_width=True):
-                            st.markdown(f"### {sub}")
-                            st.write(f"**Facets:** {', '.join(details['facets'])}")
-                            st.write("**Methodologies (Techniques):**")
-                            for m in details['methods']:
-                                st.markdown(f"- {m}")
-                st.divider()
-    else:
-        st.info("The SIS Model connects profiles with scientific methodologies using Lego logic. Enable the Explorer to browse methods.")
+# MAIN SELECTION INTERFACE
+st.markdown("### 🛠️ Configure Your Knowledge Build")
+row1_col1, row1_col2, row1_col3 = st.columns(3)
+with row1_col1:
+    selected_profile = st.selectbox("1. User Profile (The Who):", list(KNOWLEDGE_BASE["profiles"].keys()))
+with row1_col2:
+    selected_paradigm = st.selectbox("2. Paradigm (The View):", list(KNOWLEDGE_BASE["paradigms"].keys()))
+with row1_col3:
+    selected_science = st.selectbox("3. Science (The Block):", list(KNOWLEDGE_BASE["subject_details"].keys()))
 
-# Main Selection Interface
-c1, c2, c3 = st.columns(3)
-with c1:
-    profile_names = list(KNOWLEDGE_BASE["profiles"].keys())
-    selected_profile = st.selectbox("👤 User Profile:", profile_names)
-    st.info(f"**Focus:** {KNOWLEDGE_BASE['profiles'][selected_profile]['description']}")
+row2_col1, row2_col2, row2_col3 = st.columns(3)
+with row2_col1:
+    selected_method = st.selectbox("4. Methodology (The Way):", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
+with row2_col2:
+    selected_tool = st.selectbox("5. Specific Tool (The Instrument):", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
+with row2_col3:
+    selected_model = st.selectbox("6. Knowledge Model (The Structure):", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
 
-with c2:
-    all_subjects = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    profile_subjects = KNOWLEDGE_BASE["profiles"][selected_profile]["subjects"]
-    default_sub_index = all_subjects.index(profile_subjects[0]) if profile_subjects[0] in all_subjects else 0
-    selected_subject = st.selectbox("🔬 Scientific Field:", all_subjects, index=default_sub_index)
-
-with c3:
-    # Filter methodologies based on the selected science
-    available_methods = KNOWLEDGE_BASE["subject_details"][selected_subject]["methods"]
-    selected_method = st.selectbox("🛠️ Research Methodology:", available_methods)
-
-user_question = st.text_area("❓ Synthesis Question:", 
-                              placeholder=f"How can I use {selected_method} in {selected_subject} from the perspective of a {selected_profile}?")
+user_query = st.text_area("❓ Synthesis Question:", 
+                         placeholder="e.g. How do we explain consciousness through these layers?")
 
 # =========================================================
-# 3. SYNTHESIS LOGIC (Groq AI)
+# 3. CORE SYNTHESIS LOGIC (Groq AI)
 # =========================================================
-if st.button("🚀 Run Multidimensional Synthesis", use_container_width=True):
+if st.button("🚀 Run Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Missing API Key! Please provide a Groq API key in the sidebar.")
+        st.error("Please provide a Groq API Key.")
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
-            s_data = KNOWLEDGE_BASE["subject_details"][selected_subject]
+            p_info = KNOWLEDGE_BASE["profiles"][selected_profile]
+            paradigm_info = KNOWLEDGE_BASE["paradigms"][selected_paradigm]
+            model_info = KNOWLEDGE_BASE["knowledge_models"][selected_model]
             
             prompt = f"""
-            SYSTEM ROLE: You are the SIS (Systemic Interest Synthesizer). 
-            You explain complex scientific relationships using 'Lego Logic'.
+            You are the SIS Synthesizer. Synthesize a response based on these 6 Lego dimensions:
             
-            CONTEXT:
-            - User Profile: {selected_profile} (Driver: {p_data['drivers']})
-            - Science Field: {selected_subject} (Facets: {', '.join(s_data['facets'])})
-            - Selected Methodology: {selected_method} (This is the tool/technique for the build)
+            1. USER PROFILE: {selected_profile} (Driver: {p_info['drivers']})
+            2. PARADIGM: {selected_paradigm} ({paradigm_info})
+            3. SCIENCE FIELD: {selected_science}
+            4. METHODOLOGY: {selected_method}
+            5. TOOL: {selected_tool}
+            6. KNOWLEDGE MODEL STRUCTURE: {selected_model} ({model_info})
 
-            TASK:
-            Synthesize the Science Field and the Methodology for this User Profile. 
-            - Explain the Science Field as the 'Lego Bricks'.
-            - Explain the Methodology as the 'Building Technique' or 'Instructions'.
-            - Show how this specific 'build' helps the user satisfy their 'Core Driver'.
+            INSTRUCTIONS:
+            - Foundation: Start with the {selected_paradigm} view.
+            - Building Blocks: Use {selected_science} and {selected_tool} as your primary materials.
+            - Architecture: Organize the logic using the {selected_model} structure (e.g., focus on causes/effects or sequences).
+            - Goal: Satisfy the {selected_profile}'s core driver.
             
-            LANGUAGE: English.
+            Tone: Professional, academic, yet structured like a 'Lego build' explanation.
+            Language: English.
             """
             
-            with st.spinner('Building knowledge structures...'):
+            with st.spinner('Assembling knowledge layers...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": prompt},
-                        {"role": "user", "content": user_question}
-                    ],
+                    messages=[{"role": "system", "content": prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
                 
-                st.subheader("📊 Multidimensional Synthesis Result")
+                st.subheader("📊 Synthesis Result")
                 st.markdown(response.choices[0].message.content)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Global Model | 2025 Edition | Multi-Disciplinary Architecture")
+st.caption("SIS Global Epistemic Architecture | 2025 Edition | Multi-Dimensional Framework")
