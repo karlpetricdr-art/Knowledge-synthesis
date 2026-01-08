@@ -1,8 +1,38 @@
 import streamlit as st
 import json
-import os
+import base64
 from openai import OpenAI
-from PIL import Image
+
+# =========================================================
+# 0. EMBEDDED ICON (Stylized Pyramid & Tree of Knowledge)
+# =========================================================
+# We use a custom SVG for maximum reliability and clean look.
+SVG_LOGO = """
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#2e7d32;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <!-- Pyramid Base -->
+    <path d="M20 180 L100 20 L180 180 Z" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+    <path d="M100 20 L100 180" stroke="#ccc" stroke-width="1"/>
+    <!-- Tree Trunk inside Pyramid -->
+    <rect x="95" y="100" width="10" height="80" fill="#5d4037" />
+    <!-- Tree Leaves / Knowledge Nodes -->
+    <circle cx="100" cy="80" r="35" fill="url(#grad1)" opacity="0.9"/>
+    <circle cx="80" cy="110" r="25" fill="#43a047" opacity="0.8"/>
+    <circle cx="120" cy="110" r="25" fill="#43a047" opacity="0.8"/>
+    <!-- Decorative Knowledge Blocks -->
+    <rect x="40" y="160" width="15" height="15" fill="#1565c0" />
+    <rect x="145" y="160" width="15" height="15" fill="#c62828" />
+    <rect x="92" y="40" width="16" height="16" fill="#f9a825" />
+</svg>
+"""
+
+def get_svg_base64(svg_str):
+    return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
@@ -112,25 +142,17 @@ st.markdown("Precision synthesis engine for **Personalized Knowledge Architectur
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    # --- IMPROVED IMAGE LOADING LOGIC ---
-    found_image = None
-    possible_names = ["input_file_2.jpeg", "input_file_2.jpg", "input_file_2.png", "input_file_2.JPEG", "input_file_2.JPG"]
+    # DISPLAY EMBEDDED LOGO
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <img src="data:image/svg+xml;base64,{get_svg_base64(SVG_LOGO)}" width="180">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
-    for name in possible_names:
-        if os.path.exists(name):
-            found_image = name
-            break
-            
-    if found_image:
-        st.image(found_image, width=250)
-    else:
-        st.warning("⚠️ Logo 'input_file_2.jpeg' not detected.")
-        # Debug helper: List all files to see why it's missing
-        if st.checkbox("Debug: List files in folder"):
-            st.write(os.listdir("."))
-
     st.header("⚙️ Control Panel")
-    
     api_key = st.text_input("Groq API Key:", type="password")
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
@@ -208,7 +230,7 @@ with col4:
 with col5:
     selected_tool = st.selectbox("6. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize the relationship between entropy and information theory.")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. How do we explain the evolution of social structures using these dimensions?")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -223,19 +245,40 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
-            USER: Profile {selected_profile}, Level {expertise}, Goal {goal_context}.
-            DIMENSIONS: Paradigm {selected_paradigm}, Science {selected_science}, Method {selected_method}, Tool {selected_tool}, Structure {selected_model}.
-            RULES: Respond in English. Use Paradigm as foundation. Structure output according to {selected_model}.
+            
+            USER ATTRIBUTES:
+            - Profile: {selected_profile} ({p_data['description']})
+            - Expertise Level: {expertise}
+            - Goal: {goal_context}
+            
+            DIMENSIONS:
+            - Paradigm: {selected_paradigm} ({KNOWLEDGE_BASE['paradigms'][selected_paradigm]})
+            - Science: {selected_science}
+            - Methodology: {selected_method}
+            - Tool: {selected_tool}
+            - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
+
+            CONSTRUCTION RULES:
+            1. Use the Paradigm as the foundational logic.
+            2. Science and Tool are your primary bricks.
+            3. Apply the Structural Model as the architectural plan.
+            4. Adjust depth for a {expertise} level.
+            5. Response must be in English.
             """
             
             with st.spinner('Assembling knowledge blocks...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_query}
+                    ],
                     temperature=0.6
                 )
+                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
+                
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
