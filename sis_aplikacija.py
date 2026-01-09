@@ -236,6 +236,9 @@ with st.sidebar:
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
 # --- MAIN SELECTION INTERFACE ---
+st.title("🧱 SIS Universal Knowledge Synthesizer")
+st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
+
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
@@ -254,13 +257,14 @@ with col3:
 
 st.divider()
 
-# Dinamična agregacija metod in orodij glede na izbrane znanosti
+# Dinamična agregacija metod in orodij glede na vse izbrane znanosti
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
+# Odstranimo duplikate in sortiramo
 agg_methods = sorted(list(set(agg_methods)))
 agg_tools = sorted(list(set(agg_tools)))
 
@@ -286,7 +290,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # Priprava pluralnih opisov za prompt
+            # Priprava pluralnih nizov za prompt
             profiles_str = ", ".join(selected_profiles)
             paradigms_str = ", ".join(selected_paradigms)
             sciences_str = ", ".join(selected_sciences)
@@ -305,18 +309,18 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             DIMENSIONS:
             - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Mental Approaches: {approaches_str} (Process all logic through these cognitive lenses collectively)
             - Sciences: {sciences_str}
             - Methodologies: {methods_str}
             - Tools: {tools_str}
             - Structural Models: {models_str}
 
             CONSTRUCTION RULES:
-            1. Foundation: Integrate the logic base from the selected Paradigms: {paradigms_str}.
+            1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
             2. Cognitive Lens: Apply the combination of '{approaches_str}' as the primary filter for processing information.
-            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and specific tools as components.
+            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and tools as components.
             4. Plan: Structure the output strictly according to the combined requirements of the selected Structural Models: {models_str}.
-            5. Cross-Pollination: Ensure high-level synthesis between the chosen fields.
+            5. Integration: Ensure a high-level synthesis (cross-pollination) between all chosen dimensions.
             6. Tone: Adjust for a {expertise} level. 
             7. Language: English.
             """
