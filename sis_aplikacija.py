@@ -237,9 +237,8 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
-    # Gumbi s povezavami
+    # Gumbi s povezavami (Grokipedia odstranjena)
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
-    st.link_button("📜 Grokipedia Access", "https://x.ai/", use_container_width=True)
     st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
 # --- MAIN SELECTION INTERFACE ---
@@ -268,6 +267,7 @@ for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
+# Odstranimo duplikate in sortiramo
 agg_methods = sorted(list(set(agg_methods)))
 agg_tools = sorted(list(set(agg_tools)))
 
