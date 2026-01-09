@@ -1,5 +1,6 @@
 streamlit
 openai
-grokipedia-api[all]
 requests
+grokipedia-api[all]
+
 
