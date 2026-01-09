@@ -1,6 +1,5 @@
 streamlit
 openai
-requests
 grokipedia-api[all]
-
-
+scholarly
+requests
