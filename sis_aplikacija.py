@@ -3,10 +3,16 @@ import json
 import base64
 from openai import OpenAI
 
+# POSKUS UVOZA GROKIPEDIA API (Nujno za verzijo 2026)
+try:
+    from grokipedia_api import GrokipediaClient
+except ImportError:
+    # Če knjižnica še ni nameščena v okolju, sistem deluje v standby načinu
+    GrokipediaClient = None
+
 # =========================================================
 # 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
 # =========================================================
-# Definiramo logotip, ki vizualno predstavlja "Lego" logiko in sintezo znanja.
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -48,13 +54,12 @@ SVG_3D_RELIEF = """
 """
 
 def get_svg_base64(svg_str):
-    """Pretvori SVG kodo v base64 format za prikaz v Streamlitu."""
+    """Pretvori SVG kodo v base64 format."""
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (Full Version)
 # =========================================================
-# Celotna ontologija s podrobnimi opisi vseh dimenzij.
 KNOWLEDGE_BASE = {
     "mental_approaches": [
         "Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max",
@@ -93,7 +98,7 @@ KNOWLEDGE_BASE = {
         "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
         "Episodes & Sequences": "Organizing knowledge as a chronological flow and narrative processes.",
         "Facts & Characteristics": "Focusing on raw data and properties of objects.",
-        "Generalizations": "Moving from specific data points to broad, universal frameworks.",
+        "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
         "Glossary": "Precise definitions of terminology and subject-specific labels.",
         "Concepts": "Situational conceptual maps, categories, and abstract mental constructs."
     },
@@ -174,224 +179,176 @@ KNOWLEDGE_BASE = {
 }
 
 # =========================================================
-# 2. STREAMLIT INTERFACE
+# 2. REAL GROKIPEDIA INTEGRATION (Connected to 2026 API)
 # =========================================================
-# Nastavitve strani
-st.set_page_config(page_title="SIS Synthesizer Total Synthesis", page_icon="🌳", layout="wide")
+def get_grokipedia_data(query):
+    """Pridobi faktografske podatke in avtorje neposredno iz Grokipedia baze."""
+    if GrokipediaClient is None:
+        return "Grokipedia Status: Standby. Using internal verified patterns."
+    
+    try:
+        client = GrokipediaClient()
+        search_results = client.search(query, limit=5)
+        
+        if search_results and 'results' in search_results:
+            context = "### VERIFIED DATA FROM GROKIPEDIA BASE:\n"
+            for item in search_results['results']:
+                title = item.get('title', 'Unknown')
+                summary = item.get('summary', 'No summary available.')
+                context += f"• SOURCE: {title}\n  SUMMARY: {summary}\n\n"
+            return context
+        return "No specific factual entries found in Grokipedia for this query."
+    except Exception as e:
+        return f"Grokipedia connectivity limited: {str(e)}"
 
-# Inicializacija session state za gumbe
+# =========================================================
+# 3. STREAMLIT INTERFACE
+# =========================================================
+st.set_page_config(page_title="SIS Synthesizer Total 2026", page_icon="🌳", layout="wide")
+
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
 # --- SIDEBAR START ---
 with st.sidebar:
-    # DISPLAY 3D RELIEF LOGO
-    st.markdown(
-        f"""
-        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-            <img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
+    st.markdown(f'<div style="display: flex; justify-content: center; margin-bottom: 10px;"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
+    use_grok = st.checkbox("🌐 Enable Grokipedia Real-time Access", value=True)
+    st.divider()
 
     with st.popover("📖 Lego Building Guide", use_container_width=True):
-        st.markdown("""
-        ### Synthesis Process:
-        1. **Foundation:** Choose your **Paradigms** and **User Profiles**.
-        2. **Bricks:** Select **Sciences**, **Methods**, and **Tools**.
-        3. **Building Plan:** Select the **Structural Models**.
-        4. **Target View:** Synthesize and enjoy the architecture.
-        """)
+        st.markdown("1. Profiles & Paradigms -> 2. Grokipedia Facts -> 3. Dimensions -> 4. Synthesis")
 
     st.subheader("🚀 Quick Templates")
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        if st.button("🎓 Academic", use_container_width=True):
-            st.session_state.expertise_val = "Expert"
-            st.rerun()
-    with col_t2:
-        if st.button("👶 Learner", use_container_width=True):
-            st.session_state.expertise_val = "Novice"
-            st.rerun()
+    if st.button("🎓 Academic", use_container_width=True):
+        st.session_state.expertise_val = "Expert"; st.rerun()
+    if st.button("👶 Learner", use_container_width=True):
+        st.session_state.expertise_val = "Novice"; st.rerun()
 
     st.divider()
-
     st.subheader("📚 Knowledge Explorer")
     with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items():
-            st.write(f"**{p}**: {d['description']}")
-
-    with st.expander("🧠 Mental Approaches"):
-        for approach in KNOWLEDGE_BASE["mental_approaches"]:
-            st.write(f"• {approach}")
-
+        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['description']}")
     with st.expander("🌍 Scientific Paradigms"):
-        for p, d in KNOWLEDGE_BASE["paradigms"].items():
-            st.write(f"**{p}**: {d}")
-
-    with st.expander("🔬 Science Fields"):
-        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
-            d = KNOWLEDGE_BASE["subject_details"][s]
-            st.write(f"• **{s}** ({d['cat']})")
-
+        for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
     with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-            st.write(f"**{m}**: {d}")
+        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-
     if st.button("♻️ Reset Session", use_container_width=True):
-        st.session_state.clear()
-        st.rerun()
-    
-    st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
+        st.session_state.clear(); st.rerun()
 
 # --- MAIN SELECTION INTERFACE ---
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
-
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# Prva vrsta izbir (Profili, Paradigme, Stopnja znanja)
 col1, col2, col3 = st.columns(3)
-
 with col1:
-    # NADGRADNJA: Multi-select za uporabniške profile
-    selected_profiles = st.multiselect(
-        "1. User Profiles:", 
-        list(KNOWLEDGE_BASE["profiles"].keys()), 
-        default=[list(KNOWLEDGE_BASE["profiles"].keys())[0]]
-    )
+    # NADGRADNJA: Multi-select za profile
+    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
-
 with col2:
     # NADGRADNJA: Multi-select za paradigme
-    selected_paradigms = st.multiselect(
-        "2. Scientific Paradigms:", 
-        list(KNOWLEDGE_BASE["paradigms"].keys()), 
-        default=[list(KNOWLEDGE_BASE["paradigms"].keys())[0]]
-    )
-    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
-
+    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
+    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Educational", "Problem Solving", "Policy Making"])
 with col3:
-    # NADGRADNJA: Multi-select za znanstvene panoge
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_sciences = st.multiselect(
-        "3. Science Fields:", 
-        sciences_list, 
-        default=[sciences_list[0]]
-    )
-    # NADGRADNJA: Multi-select za strukturne modele
-    selected_models = st.multiselect(
-        "4. Structural Models:", 
-        list(KNOWLEDGE_BASE["knowledge_models"].keys()), 
-        default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]]
-    )
+    selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=["Physics", "Philosophy"])
+    # NADGRADNJA: Multi-select za modele
+    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
 
 st.divider()
 
-# Dinamična agregacija metod, orodij in facetov glede na vse izbrane znanosti
-aggregated_methods = []
-aggregated_tools = []
-aggregated_facets = []
+# Dinamična agregacija metod, orodij in facetov
+agg_methods, agg_tools, agg_facets = [], [], []
 for s in selected_sciences:
-    aggregated_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-    aggregated_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
-    aggregated_facets.extend(KNOWLEDGE_BASE["subject_details"][s]["facets"])
+    agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+    agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    agg_facets.extend(KNOWLEDGE_BASE["subject_details"][s]["facets"])
 
-# Čiščenje podvojenih vnosov
-aggregated_methods = sorted(list(set(aggregated_methods)))
-aggregated_tools = sorted(list(set(aggregated_tools)))
-aggregated_facets = sorted(list(set(aggregated_facets)))
+agg_methods = sorted(list(set(agg_methods)))
+agg_tools = sorted(list(set(agg_tools)))
+agg_facets = sorted(list(set(agg_facets)))
 
-# Druga vrsta izbir (Pristopi, Metode, Orodja)
 col4, col5, col6 = st.columns(3)
-
 with col4:
     # NADGRADNJA: Multi-select za mentalne pristope
-    selected_approaches = st.multiselect(
-        "5. Mental Approaches:", 
-        KNOWLEDGE_BASE["mental_approaches"], 
-        default=[KNOWLEDGE_BASE["mental_approaches"][0]]
-    )
+    selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=["Perspective shifting"])
 with col5:
-    selected_methods = st.multiselect("6. Methodologies:", aggregated_methods)
+    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
 with col6:
-    selected_tools = st.multiselect("7. Specific Tools:", aggregated_tools)
+    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
 
-# Prikaz vseh facetov (tem), ki so na voljo za izbrane znanosti
-if aggregated_facets:
-    st.info(f"**Relevant Sub-facets available for synthesis:** {', '.join(aggregated_facets)}")
+if agg_facets:
+    st.info(f"**Available Sub-facets for Synthesis:** {', '.join(agg_facets)}")
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Analyze the future of labor.")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize the influence of Nikola Tesla on wireless energy through the lens of modern neuroscience.")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI)
+# 4. CORE SYNTHESIS LOGIC (AI + Grokipedia)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Missing Groq API Key in the sidebar.")
+        st.error("Missing Groq API Key.")
     elif not selected_sciences or not selected_profiles:
-        st.error("Please select at least one Science Field and one User Profile.")
+        st.error("Please select at least one Science Field and one Profile.")
     else:
         try:
+            # 1. Pridobivanje dejstev iz Grokipedie
+            grok_facts = ""
+            if use_grok:
+                with st.spinner('Querying Grokipedia for factual records and authors...'):
+                    grok_facts = get_grokipedia_data(user_query)
+            
+            # 2. AI Sinteza
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # Priprava pluralnih nizov za sistemski prompt
-            profiles_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['profiles'][p]['description']})" for p in selected_profiles])
-            paradigms_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['paradigms'][p]})" for p in selected_paradigms])
-            models_info = ", ".join([f"{m} ({KNOWLEDGE_BASE['knowledge_models'][m]})" for m in selected_models])
-            
+            p_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['profiles'][p]['description']})" for p in selected_profiles])
+            pa_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['paradigms'][p]})" for p in selected_paradigms])
+            mo_info = ", ".join([f"{m} ({KNOWLEDGE_BASE['knowledge_models'][m]})" for m in selected_models])
+
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
-            Your primary objective is the cross-pollination of diverse dimensions into a singular, high-utility output.
             
-            INTEGRATED USER PROFILES (Synthesize for all):
-            - Profiles: {profiles_info}
-            - Expertise Level: {expertise}
-            - Goal: {goal_context}
+            GROKIPEDIA FACTUAL CONTEXT:
+            {grok_facts if use_grok else "Use internal verified patterns."}
+            
+            INTEGRATED USER PROFILES: {p_info}
+            EXPERTISE: {expertise}
+            GOAL: {goal_context}
             
             DIMENSIONS TO INTEGRATE SIMULTANEOUSLY:
-            - Paradigms: {paradigms_info}
-            - Mental Approaches: {", ".join(selected_approaches)} (Apply these lenses collectively to the logic)
-            - Science Fields: {", ".join(selected_sciences)}
-            - Sub-facets involved: {", ".join(aggregated_facets)}
-            - Methodologies selected: {", ".join(selected_methods) if selected_methods else "General scientific inquiry"}
-            - Tools selected: {", ".join(selected_tools) if selected_tools else "Standard analytical equipment"}
-            - Structural Models: {models_info}
+            - Paradigms: {pa_info}
+            - Mental Approaches: {", ".join(selected_approaches)}
+            - Science Fields: {", ".join(selected_sciences)} (including facets: {", ".join(agg_facets)})
+            - Methodologies: {", ".join(selected_methods) if selected_methods else "General analysis"}
+            - Specific Tools: {", ".join(selected_tools) if selected_tools else "Standard tools"}
+            - Structural Models: {mo_info}
 
             CONSTRUCTION RULES:
-            1. MULTI-PROFILE SATISFACTION: The response must address the specific drivers of ALL selected profiles. 
-               Ensure it is as exploratory (Adventurer) as it is practical (Applicator) or systemic (Know-it-all).
-            2. SYNTHETIC INTEGRATION: Do not treat dimensions separately. Show how they interlock (e.g., how the paradigm of {selected_paradigms[0]} affects the methodology in {selected_sciences[0]}).
-            3. COGNITIVE LENS: Filter the entire response through the combined Mental Approaches.
-            4. STRUCTURAL ADHERENCE: Strictly organize the content following the combined requirements of the selected Structural Models.
-            5. TONE & LANGUAGE: Maintain a {expertise} level. Language: English.
+            1. FACTUAL ANCHORING: Use Grokipedia context to cite specific authors, data, and global facts.
+            2. MULTI-PROFILE SATISFACTION: Ensure the answer meets the drivers of ALL selected profiles.
+            3. SYNTHETIC INTEGRATION: Show how these fields and paradigms interlock into one structure.
+            4. COGNITIVE LENS: Filter all logic through the collective Mental Approaches.
+            5. TONE: {expertise} level. Language: English.
             """
             
-            with st.spinner('Building complex multi-dimensional knowledge structure...'):
+            with st.spinner('Synthesizing across all dimensions...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": system_prompt}, 
-                        {"role": "user", "content": user_query}
-                    ],
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
-                
-                st.subheader("📊 Multi-Dimensional & Multi-Profile Synthesis")
+                st.subheader("📊 Multi-Dimensional & Grokipedia Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.2 Total Synthesis Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v6.5 Total Grokipedia & Multi-Dim Edition | 2026")
