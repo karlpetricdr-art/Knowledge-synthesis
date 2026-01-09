@@ -6,15 +6,12 @@ from openai import OpenAI
 # =========================================================
 # 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
 # =========================================================
-# Posodobljeno: Dodan črn rob (stroke) na krog za 3D reliefni stil.
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <!-- Soft Shadow Filter for Relief Effect -->
         <filter id="reliefShadow" x="-20%" y="-20%" width="150%" height="150%">
             <feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
         </filter>
-        <!-- Gradients for Depth -->
         <linearGradient id="pyramidSide" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#e0e0e0;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#bdbdbd;stop-opacity:1" />
@@ -24,23 +21,13 @@ SVG_3D_RELIEF = """
             <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
         </linearGradient>
     </defs>
-    
-    <!-- Background Relief Circle with Black 3D Border -->
     <circle cx="120" cy="120" r="100" fill="#f0f0f0" stroke="#000000" stroke-width="4" filter="url(#reliefShadow)" />
-
-    <!-- 3D Pyramid (Two-tone for depth) -->
     <path d="M120 40 L50 180 L120 200 Z" fill="url(#pyramidSide)" />
     <path d="M120 40 L190 180 L120 200 Z" fill="#9e9e9e" />
-    
-    <!-- Tree Trunk -->
     <rect x="116" y="110" width="8" height="70" rx="2" fill="#5d4037" />
-    
-    <!-- 3D Spheres (Knowledge Nodes) -->
     <circle cx="120" cy="85" r="30" fill="url(#treeGrad)" filter="url(#reliefShadow)" />
     <circle cx="95" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
     <circle cx="145" cy="125" r="22" fill="#43a047" filter="url(#reliefShadow)" />
-    
-    <!-- Floating 'Lego' Knowledge Bricks -->
     <rect x="70" y="170" width="20" height="12" rx="2" fill="#1565c0" filter="url(#reliefShadow)" />
     <rect x="150" y="170" width="20" height="12" rx="2" fill="#c62828" filter="url(#reliefShadow)" />
     <rect x="110" y="185" width="20" height="12" rx="2" fill="#f9a825" filter="url(#reliefShadow)" />
@@ -54,26 +41,12 @@ def get_svg_base64(svg_str):
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
-    # NOVO: Seznam mentalnih pristopov
     "mental_approaches": [
-        "Perspective shifting",
-        "Induction",
-        "Deduction",
-        "Hierarchy",
-        "Mini-max",
-        "Whole and part",
-        "Addition and composition",
-        "Balance",
-        "Abstraction and elimination",
-        "Openness and closedness",
-        "Bipolarity and dialectics",
-        "Framework and foundation",
-        "Pleasure and displeasure",
-        "Similarity and difference",
-        "Core (Attraction & Repulsion)",
-        "Condensation",
-        "Constant",
-        "Associativity"
+        "Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max",
+        "Whole and part", "Addition and composition", "Balance", "Abstraction and elimination",
+        "Openness and closedness", "Bipolarity and dialectics", "Framework and foundation",
+        "Pleasure and displeasure", "Similarity and difference", "Core (Attraction & Repulsion)",
+        "Condensation", "Constant", "Associativity"
     ],
     "profiles": {
         "Adventurers": {
@@ -192,12 +165,8 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
-st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
-
 # --- SIDEBAR START ---
 with st.sidebar:
-    # DISPLAY 3D RELIEF LOGO
     st.markdown(
         f"""
         <div style="display: flex; justify-content: center; margin-bottom: 10px;">
@@ -207,7 +176,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     
-    st.header(⚙️ Control Panel")
+    st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
@@ -217,10 +186,10 @@ with st.sidebar:
     with st.popover("📖 Lego Building Guide", use_container_width=True):
         st.markdown("""
         ### Synthesis Process:
-        1. **Foundation:** Choose your **Paradigm**.
-        2. **Bricks:** Select **Science**, **Method**, and **Tool**.
-        3. **Building Plan:** Select the **Structural Model** (Glossary, Concepts, etc.).
-        4. **Target View:** Match with your **Profile**.
+        1. **Foundation:** Choose your **Paradigms**.
+        2. **Bricks:** Select **Sciences**, **Methods**, and **Tools**.
+        3. **Building Plan:** Select the **Structural Models**.
+        4. **Target View:** Match with your **Profiles**.
         """)
 
     st.subheader("🚀 Quick Templates")
@@ -250,7 +219,6 @@ with st.sidebar:
             st.write(f"**{p}**: {d}")
 
     with st.expander("🔬 Science Fields"):
-        # Urejeno po abecedi za lažji pregled
         for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
             d = KNOWLEDGE_BASE["subject_details"][s]
             st.write(f"• **{s}** ({d['cat']})")
@@ -268,33 +236,41 @@ with st.sidebar:
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
 # --- MAIN SELECTION INTERFACE ---
-st.markdown("### 🛠️ Configure Your Cognitive Build")
+st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    selected_profile = st.selectbox("1. User Profile:", list(KNOWLEDGE_BASE["profiles"].keys()))
+    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=[list(KNOWLEDGE_BASE["profiles"].keys())[0]])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
 with col2:
-    selected_paradigm = st.selectbox("2. Scientific Paradigm:", list(KNOWLEDGE_BASE["paradigms"].keys()))
+    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=[list(KNOWLEDGE_BASE["paradigms"].keys())[0]])
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 with col3:
-    # Urejen seznam znanosti
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_science = st.selectbox("3. Science Field:", sciences_list)
-    selected_model = st.selectbox("4. Structural Model:", list(KNOWLEDGE_BASE["knowledge_models"].keys()))
+    selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=[sciences_list[0]])
+    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
 
 st.divider()
 
-# Posodobljeno na 3 stolpce, da vključimo Mental Approach
+# Dinamična agregacija metod in orodij glede na izbrane znanosti
+agg_methods = []
+agg_tools = []
+for s in selected_sciences:
+    agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+    agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+
+agg_methods = sorted(list(set(agg_methods)))
+agg_tools = sorted(list(set(agg_tools)))
+
 col4, col5, col6 = st.columns(3)
 with col4:
-    selected_approach = st.selectbox("5. Mental Approach:", KNOWLEDGE_BASE["mental_approaches"])
+    selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 with col5:
-    selected_method = st.selectbox("6. Methodology:", KNOWLEDGE_BASE["subject_details"][selected_science]["methods"])
+    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
 with col6:
-    selected_tool = st.selectbox("7. Specific Tool:", KNOWLEDGE_BASE["subject_details"][selected_science]["tools"])
+    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
 
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
@@ -304,39 +280,48 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synth
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
         st.error("Missing Groq API Key in the sidebar.")
+    elif not selected_sciences:
+        st.warning("Please select at least one Science Field.")
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
-            p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
+            
+            # Priprava pluralnih opisov za prompt
+            profiles_str = ", ".join(selected_profiles)
+            paradigms_str = ", ".join(selected_paradigms)
+            sciences_str = ", ".join(selected_sciences)
+            models_str = ", ".join(selected_models)
+            approaches_str = ", ".join(selected_approaches)
+            methods_str = ", ".join(selected_methods) if selected_methods else "general methods"
+            tools_str = ", ".join(selected_tools) if selected_tools else "standard tools"
             
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
             
             USER ATTRIBUTES:
-            - Profile: {selected_profile} ({p_data['description']})
+            - Profiles: {profiles_str}
             - Expertise Level: {expertise}
             - Goal: {goal_context}
             
             DIMENSIONS:
-            - Paradigm: {selected_paradigm} ({KNOWLEDGE_BASE['paradigms'][selected_paradigm]})
-            - Mental Approach: {selected_approach} (Process all logic through this cognitive lens)
-            - Science: {selected_science}
-            - Methodology: {selected_method}
-            - Tool: {selected_tool}
-            - Structural Model: {selected_model} ({KNOWLEDGE_BASE['knowledge_models'][selected_model]})
+            - Paradigms: {paradigms_str}
+            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Sciences: {sciences_str}
+            - Methodologies: {methods_str}
+            - Tools: {tools_str}
+            - Structural Models: {models_str}
 
             CONSTRUCTION RULES:
-            1. Foundation: Use {selected_paradigm} as the logic base.
-            2. Cognitive Lens: Apply the '{selected_approach}' approach as the primary filter for processing information.
-            3. Bricks: Use {selected_science}, its methods and {selected_tool} as components.
-            4. Plan: Structure the output strictly according to the {selected_model} model. 
-               - If 'Glossary', prioritize technical definitions. 
-               - If 'Concepts', prioritize mental frameworks and maps.
-            5. Tone: Adjust for a {expertise} level. 
-            6. Language: English.
+            1. Foundation: Integrate the logic base from the selected Paradigms: {paradigms_str}.
+            2. Cognitive Lens: Apply the combination of '{approaches_str}' as the primary filter for processing information.
+            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and specific tools as components.
+            4. Plan: Structure the output strictly according to the combined requirements of the selected Structural Models: {models_str}.
+            5. Cross-Pollination: Ensure high-level synthesis between the chosen fields.
+            6. Tone: Adjust for a {expertise} level. 
+            7. Language: English.
             """
             
-            with st.spinner('Building knowledge structure...'):
+            with st.spinner('Synthesizing complex knowledge structure...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
@@ -350,5 +335,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v3.1 Mental Approach Edition | 2026")
-
+st.caption("SIS Universal Knowledge Synthesizer | v4.0 Multi-Dimensional Edition | 2026")
