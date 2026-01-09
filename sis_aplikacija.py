@@ -6,7 +6,7 @@ from openai import OpenAI
 # =========================================================
 # 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
 # =========================================================
-# Ohranjen stil z reliefom in črnim robom
+# Definiramo logotip, ki vizualno predstavlja "Lego" logiko in sintezo znanja.
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -48,11 +48,13 @@ SVG_3D_RELIEF = """
 """
 
 def get_svg_base64(svg_str):
+    """Pretvori SVG kodo v base64 format za prikaz v Streamlitu."""
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
+# Celotna ontologija s podrobnimi opisi vseh dimenzij.
 KNOWLEDGE_BASE = {
     "mental_approaches": [
         "Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max",
@@ -90,8 +92,8 @@ KNOWLEDGE_BASE = {
         "Causal Connections": "Analyzing the chain of causes, effects, and the 'why' behind phenomena.",
         "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
         "Episodes & Sequences": "Organizing knowledge as a chronological flow and narrative processes.",
-        "Facts & Characteristics": "Focusing on raw data and properties of living or inanimate objects.",
-        "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
+        "Facts & Characteristics": "Focusing on raw data and properties of objects.",
+        "Generalizations": "Moving from specific data points to broad, universal frameworks.",
         "Glossary": "Precise definitions of terminology and subject-specific labels.",
         "Concepts": "Situational conceptual maps, categories, and abstract mental constructs."
     },
@@ -100,73 +102,73 @@ KNOWLEDGE_BASE = {
             "cat": "Natural Sciences",
             "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"],
             "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
-            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
+            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics", "Electromagnetism"]
         },
         "Chemistry": {
             "cat": "Natural Sciences",
             "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"],
             "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"],
-            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry"]
+            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry", "Kinetics"]
         },
         "Biology": {
             "cat": "Natural Sciences",
             "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"],
             "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
-            "facets": ["Genetics", "Cell Biology", "Ecology"]
+            "facets": ["Genetics", "Cell Biology", "Ecology", "Evolutionary Biology"]
         },
         "Neuroscience": {
             "cat": "Natural Sciences",
             "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"],
             "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"],
-            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping"]
+            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping", "Neural Networks"]
         },
         "Psychology": {
             "cat": "Social Sciences",
             "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
             "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
+            "facets": ["Behavioral Cognition", "Developmental Psychology", "Social Psychology", "Abnormal Psychology"]
         },
         "Sociology": {
             "cat": "Social Sciences",
             "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"],
             "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"],
-            "facets": ["Social Stratification", "Group Dynamics", "Urbanization"]
+            "facets": ["Social Stratification", "Group Dynamics", "Urbanization", "Cultural Theory"]
         },
         "Computer Science": {
             "cat": "Formal Sciences",
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
             "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
-            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
+            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems", "Data Science"]
         },
         "Medicine": {
             "cat": "Applied Sciences",
             "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"],
             "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"],
-            "facets": ["Pathology", "Immunology", "Pharmacology"]
+            "facets": ["Pathology", "Immunology", "Pharmacology", "Genomics"]
         },
         "Engineering": {
             "cat": "Applied Sciences",
             "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
             "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
-            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
+            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics", "Material Science"]
         },
         "Library Science": {
             "cat": "Applied Sciences",
             "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
             "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
-            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation"]
+            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation", "Ontology Design"]
         },
         "Philosophy": {
             "cat": "Humanities",
             "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
             "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
-            "facets": ["Ethics", "Metaphysics", "Epistemology"]
+            "facets": ["Ethics", "Metaphysics", "Epistemology", "Logic"]
         },
         "Linguistics": {
             "cat": "Humanities",
             "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
             "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
-            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
+            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics", "Semantics"]
         }
     }
 }
@@ -174,13 +176,16 @@ KNOWLEDGE_BASE = {
 # =========================================================
 # 2. STREAMLIT INTERFACE
 # =========================================================
-st.set_page_config(page_title="SIS Synthesizer Multi-Dim", page_icon="🌳", layout="wide")
+# Nastavitve strani
+st.set_page_config(page_title="SIS Synthesizer Total Synthesis", page_icon="🌳", layout="wide")
 
+# Inicializacija session state za gumbe
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
-# --- SIDEBAR (CELOTNA KOT PREJ) ---
+# --- SIDEBAR START ---
 with st.sidebar:
+    # DISPLAY 3D RELIEF LOGO
     st.markdown(
         f"""
         <div style="display: flex; justify-content: center; margin-bottom: 10px;">
@@ -200,10 +205,10 @@ with st.sidebar:
     with st.popover("📖 Lego Building Guide", use_container_width=True):
         st.markdown("""
         ### Synthesis Process:
-        1. **Foundation:** Choose your **Paradigms**.
+        1. **Foundation:** Choose your **Paradigms** and **User Profiles**.
         2. **Bricks:** Select **Sciences**, **Methods**, and **Tools**.
         3. **Building Plan:** Select the **Structural Models**.
-        4. **Target View:** Match with your **Profile**.
+        4. **Target View:** Synthesize and enjoy the architecture.
         """)
 
     st.subheader("🚀 Quick Templates")
@@ -249,19 +254,26 @@ with st.sidebar:
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
-# --- GLAVNI VMESNIK (MULTI-SELECT NADGRADNJA) ---
+# --- MAIN SELECTION INTERFACE ---
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
+# Prva vrsta izbir (Profili, Paradigme, Stopnja znanja)
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    selected_profile = st.selectbox("1. User Profile:", list(KNOWLEDGE_BASE["profiles"].keys()))
+    # NADGRADNJA: Multi-select za uporabniške profile
+    selected_profiles = st.multiselect(
+        "1. User Profiles:", 
+        list(KNOWLEDGE_BASE["profiles"].keys()), 
+        default=[list(KNOWLEDGE_BASE["profiles"].keys())[0]]
+    )
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
 with col2:
+    # NADGRADNJA: Multi-select za paradigme
     selected_paradigms = st.multiselect(
         "2. Scientific Paradigms:", 
         list(KNOWLEDGE_BASE["paradigms"].keys()), 
@@ -270,12 +282,14 @@ with col2:
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 with col3:
+    # NADGRADNJA: Multi-select za znanstvene panoge
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
     selected_sciences = st.multiselect(
         "3. Science Fields:", 
         sciences_list, 
         default=[sciences_list[0]]
     )
+    # NADGRADNJA: Multi-select za strukturne modele
     selected_models = st.multiselect(
         "4. Structural Models:", 
         list(KNOWLEDGE_BASE["knowledge_models"].keys()), 
@@ -284,20 +298,25 @@ with col3:
 
 st.divider()
 
-# Dinamična agregacija metod in orodij glede na vse izbrane znanosti
+# Dinamična agregacija metod, orodij in facetov glede na vse izbrane znanosti
 aggregated_methods = []
 aggregated_tools = []
+aggregated_facets = []
 for s in selected_sciences:
     aggregated_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     aggregated_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    aggregated_facets.extend(KNOWLEDGE_BASE["subject_details"][s]["facets"])
 
-# Odstranimo dvojnike in sortiramo po abecedi
+# Čiščenje podvojenih vnosov
 aggregated_methods = sorted(list(set(aggregated_methods)))
 aggregated_tools = sorted(list(set(aggregated_tools)))
+aggregated_facets = sorted(list(set(aggregated_facets)))
 
+# Druga vrsta izbir (Pristopi, Metode, Orodja)
 col4, col5, col6 = st.columns(3)
 
 with col4:
+    # NADGRADNJA: Multi-select za mentalne pristope
     selected_approaches = st.multiselect(
         "5. Mental Approaches:", 
         KNOWLEDGE_BASE["mental_approaches"], 
@@ -308,7 +327,11 @@ with col5:
 with col6:
     selected_tools = st.multiselect("7. Specific Tools:", aggregated_tools)
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics using the selected dimensions.")
+# Prikaz vseh facetov (tem), ki so na voljo za izbrane znanosti
+if aggregated_facets:
+    st.info(f"**Relevant Sub-facets available for synthesis:** {', '.join(aggregated_facets)}")
+
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Analyze the future of labor.")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -316,43 +339,45 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synth
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
         st.error("Missing Groq API Key in the sidebar.")
-    elif not selected_sciences:
-        st.error("Please select at least one Science Field.")
+    elif not selected_sciences or not selected_profiles:
+        st.error("Please select at least one Science Field and one User Profile.")
     else:
         try:
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
-            p_data = KNOWLEDGE_BASE["profiles"][selected_profile]
             
-            # Priprava pluralnih opisov za prompt
+            # Priprava pluralnih nizov za sistemski prompt
+            profiles_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['profiles'][p]['description']})" for p in selected_profiles])
             paradigms_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['paradigms'][p]})" for p in selected_paradigms])
             models_info = ", ".join([f"{m} ({KNOWLEDGE_BASE['knowledge_models'][m]})" for m in selected_models])
             
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
-            Your task is to integrate multiple dimensions into a unified response.
+            Your primary objective is the cross-pollination of diverse dimensions into a singular, high-utility output.
             
-            USER ATTRIBUTES:
-            - Profile: {selected_profile} ({p_data['description']})
+            INTEGRATED USER PROFILES (Synthesize for all):
+            - Profiles: {profiles_info}
             - Expertise Level: {expertise}
             - Goal: {goal_context}
             
             DIMENSIONS TO INTEGRATE SIMULTANEOUSLY:
             - Paradigms: {paradigms_info}
-            - Mental Approaches: {", ".join(selected_approaches)} (Apply these lenses collectively)
-            - Sciences: {", ".join(selected_sciences)}
-            - Methodologies: {", ".join(selected_methods) if selected_methods else "General scientific inquiry"}
-            - Tools: {", ".join(selected_tools) if selected_tools else "Standard analytical equipment"}
+            - Mental Approaches: {", ".join(selected_approaches)} (Apply these lenses collectively to the logic)
+            - Science Fields: {", ".join(selected_sciences)}
+            - Sub-facets involved: {", ".join(aggregated_facets)}
+            - Methodologies selected: {", ".join(selected_methods) if selected_methods else "General scientific inquiry"}
+            - Tools selected: {", ".join(selected_tools) if selected_tools else "Standard analytical equipment"}
             - Structural Models: {models_info}
 
             CONSTRUCTION RULES:
-            1. MULTI-DIMENSIONAL INTEGRATION: Do not treat the selected sciences or paradigms in isolation. Cross-pollinate them.
-            2. COGNITIVE LENS: Process the entire inquiry through the combined filter of the selected Mental Approaches.
-            3. BUILDING PLAN: Structure the output by synthesizing the requirements of all selected Structural Models. 
-            4. TONE: Adjust the complexity for a {expertise} level. 
-            5. LANGUAGE: English.
+            1. MULTI-PROFILE SATISFACTION: The response must address the specific drivers of ALL selected profiles. 
+               Ensure it is as exploratory (Adventurer) as it is practical (Applicator) or systemic (Know-it-all).
+            2. SYNTHETIC INTEGRATION: Do not treat dimensions separately. Show how they interlock (e.g., how the paradigm of {selected_paradigms[0]} affects the methodology in {selected_sciences[0]}).
+            3. COGNITIVE LENS: Filter the entire response through the combined Mental Approaches.
+            4. STRUCTURAL ADHERENCE: Strictly organize the content following the combined requirements of the selected Structural Models.
+            5. TONE & LANGUAGE: Maintain a {expertise} level. Language: English.
             """
             
-            with st.spinner('Building complex knowledge structure...'):
+            with st.spinner('Building complex multi-dimensional knowledge structure...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[
@@ -362,11 +387,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     temperature=0.6
                 )
                 
-                st.subheader("📊 Multi-Dimensional Synthesis Output")
+                st.subheader("📊 Multi-Dimensional & Multi-Profile Synthesis")
                 st.markdown(response.choices[0].message.content)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.1 Multi-Dimensional Engine | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.2 Total Synthesis Edition | 2026")
