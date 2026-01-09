@@ -51,7 +51,7 @@ KNOWLEDGE_BASE = {
     "profiles": {
         "Adventurers": {
             "drivers": "cross-disciplinary exploration / discovery",
-            "description": "Explorers seeking to connect distant fields and find hidden patterns in new territories."
+            "description": "Explorers seeking to connect distant fields and find hidden patterns."
         },
         "Applicators": {
             "drivers": "practical utility / real-world implementation",
@@ -63,7 +63,7 @@ KNOWLEDGE_BASE = {
         },
         "Observers": {
             "drivers": "systemic evolution / pattern recognition",
-            "description": "Detached analysts who monitor how systems change over time without direct intervention."
+            "description": "Detached analysts who monitor how systems change over time."
         }
     },
     "paradigms": {
@@ -165,6 +165,10 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
+# Naslov na vrhu osrednje strani
+st.title("🧱 SIS Universal Knowledge Synthesizer")
+st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
+
 # --- SIDEBAR START ---
 with st.sidebar:
     st.markdown(
@@ -233,12 +237,12 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
+    # Gumbi s povezavami
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
+    st.link_button("📜 Grokipedia Access", "https://x.ai/", use_container_width=True)
+    st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
 # --- MAIN SELECTION INTERFACE ---
-st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
-
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
@@ -257,14 +261,13 @@ with col3:
 
 st.divider()
 
-# Dinamična agregacija metod in orodij glede na vse izbrane znanosti
+# Dinamična agregacija metod in orodij glede na izbrane znanosti
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-# Odstranimo duplikate in sortiramo
 agg_methods = sorted(list(set(agg_methods)))
 agg_tools = sorted(list(set(agg_tools)))
 
@@ -309,7 +312,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             DIMENSIONS:
             - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str} (Process all logic through these cognitive lenses collectively)
+            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
             - Sciences: {sciences_str}
             - Methodologies: {methods_str}
             - Tools: {tools_str}
@@ -339,4 +342,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.0 Multi-Dimensional Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.1 Multi-Dimensional Edition | 2026")
