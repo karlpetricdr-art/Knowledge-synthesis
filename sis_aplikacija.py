@@ -1,16 +1,17 @@
 import streamlit as st
 import json
 import base64
+import requests
 from openai import OpenAI
 
-# POSKUS UVOZA GROKIPEDIA API (Zadnja verzija 2026)
+# POSKUS UVOZA GROKIPEDIA API (Zadnja specifikacija 2026)
 try:
     from grokipedia_api import GrokipediaClient
 except ImportError:
     GrokipediaClient = None
 
 # =========================================================
-# 0. 3D RELIEF LOGO (Full Resolution SVG)
+# 0. 3D RELIEF LOGO (Full High-Resolution)
 # =========================================================
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
@@ -44,7 +45,7 @@ def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. MASSIVE MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -55,208 +56,221 @@ KNOWLEDGE_BASE = {
         "Condensation", "Constant", "Associativity"
     ],
     "profiles": {
-        "Adventurers": {"drivers": "discovery", "description": "Explorers seeking to connect distant fields."},
+        "Adventurers": {"drivers": "discovery", "description": "Explorers seeking distant connections."},
         "Applicators": {"drivers": "utility", "description": "Pragmatic minds focused on efficiency."},
         "Know-it-alls": {"drivers": "synthesis", "description": "Systemic thinkers seeking a unified theory."},
         "Observers": {"drivers": "evolution", "description": "Detached analysts monitoring systems."}
     },
     "paradigms": {
-        "Empiricism": "Knowledge based on sensory experience.",
-        "Rationalism": "Knowledge based on deductive logic.",
-        "Constructivism": "Knowledge as a social construction.",
-        "Positivism": "Strict adherence to verifiable facts.",
-        "Pragmatism": "Knowledge validated by success."
+        "Empiricism": "Data-driven induction.", "Rationalism": "Deductive logic.",
+        "Constructivism": "Social context.", "Positivism": "Verified facts.",
+        "Pragmatism": "Practical results.", "Phenomenology": "Subjective experience."
     },
     "knowledge_models": {
-        "Causal Connections": "Analyzing causes and effects.",
-        "Principles & Relations": "Fundamental laws and correlations.",
-        "Episodes & Sequences": "Narrative and flow.",
-        "Facts & Characteristics": "Raw data properties.",
-        "Generalizations": "Broad universal frameworks.",
-        "Glossary": "Definitions.", "Concepts": "Mental frameworks."
+        "Causal Connections": "Analyzing causes/effects.", "Principles & Relations": "Fundamental laws.",
+        "Episodes & Sequences": "Narrative flow.", "Facts & Characteristics": "Raw data properties.",
+        "Generalizations": "Broad frameworks.", "Glossary": "Precise definitions.", "Concepts": "Mental maps."
     },
     "subject_details": {
-        "Physics": {"cat": "Natural", "methods": ["Math Modeling", "Experiment"], "tools": ["Accelerator", "Interferometer"], "facets": ["Quantum", "Relativity"]},
-        "Chemistry": {"cat": "Natural", "methods": ["Synthesis", "Spectroscopy"], "tools": ["Mass Spec"], "facets": ["Organic"]},
-        "Biology": {"cat": "Natural", "methods": ["CRISPR", "Sequencing"], "tools": ["Bio-Incubator"], "facets": ["Genetics", "Ecology"]},
-        "Neuroscience": {"cat": "Natural", "methods": ["Imaging", "EEG"], "tools": ["fMRI"], "facets": ["Neuroplasticity"]},
-        "Psychology": {"cat": "Social", "methods": ["Trials", "Psychometrics"], "tools": ["EEG"], "facets": ["Cognition"]},
-        "Sociology": {"cat": "Social", "methods": ["Ethnography", "Surveys"], "tools": ["Network Tools"], "facets": ["Group Dynamics"]},
-        "Computer Science": {"cat": "Formal", "methods": ["Agile", "Algorithm Design"], "tools": ["IDE", "GPU"], "facets": ["AI", "Security"]},
-        "Medicine": {"cat": "Applied", "methods": ["Clinical Trials"], "tools": ["MRI/CT"], "facets": ["Pathology"]},
-        "Engineering": {"cat": "Applied", "methods": ["Prototyping"], "tools": ["CAD", "3D Printing"], "facets": ["Robotics"]},
-        "Library Science": {"cat": "Applied", "methods": ["Taxonomy"], "tools": ["Metadata"], "facets": ["Knowledge Org"]},
+        "Physics": {"cat": "Natural", "methods": ["Math Modeling", "Experiment", "Simulation"], "tools": ["Accelerator", "Laser"], "facets": ["Quantum", "Relativity", "Thermodynamics"]},
+        "Chemistry": {"cat": "Natural", "methods": ["Synthesis", "Spectroscopy"], "tools": ["NMR", "Mass Spec"], "facets": ["Organic", "Electrochem"]},
+        "Biology": {"cat": "Natural", "methods": ["CRISPR", "DNA Sequencing"], "tools": ["Gene Sequencer"], "facets": ["Genetics", "Cell Bio"]},
+        "Neuroscience": {"cat": "Natural", "methods": ["fMRI", "Electrophysiology"], "tools": ["EEG", "Patch-clamp"], "facets": ["Plasticity", "Synaptic"]},
+        "Psychology": {"cat": "Social", "methods": ["Trials", "Psychometrics"], "tools": ["Test Kits"], "facets": ["Cognition", "Developmental"]},
+        "Sociology": {"cat": "Social", "methods": ["Ethnography", "Surveys"], "tools": ["Network Software"], "facets": ["Stratification", "Dynamics"]},
+        "Computer Science": {"cat": "Formal", "methods": ["Algorithm Design", "Agile"], "tools": ["IDE", "GPU Cluster"], "facets": ["AI", "Security"]},
+        "Medicine": {"cat": "Applied", "methods": ["Clinical", "Epidemiology"], "tools": ["MRI/CT"], "facets": ["Immunology", "Pathology"]},
+        "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA"], "tools": ["3D Printer", "CAD"], "facets": ["Robotics", "Materials"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic", "Analysis"], "tools": ["Archives"], "facets": ["Ethics", "Metaphysics"]},
-        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis"], "tools": ["Praat", "NLTK"], "facets": ["Syntax"]}
+        "Linguistics": {"cat": "Humanities", "methods": ["Corpus", "Parsing"], "tools": ["NLTK", "Praat"], "facets": ["Syntax", "Semantics"]},
+        "Economics": {"cat": "Social", "methods": ["Econometrics", "Game Theory"], "tools": ["Stata", "R"], "facets": ["Macro", "Behavioral"]},
+        "Environmental Science": {"cat": "Applied", "methods": ["Field Sampling", "GIS"], "tools": ["Sensors", "Satellites"], "facets": ["Climate", "Ecology"]},
+        "Archaeology": {"cat": "Humanities", "methods": ["Excavation", "Radiocarbon"], "tools": ["LiDAR", "Drone"], "facets": ["Heritage", "Ancient Civ"]},
+        "Arts & Media": {"cat": "Humanities", "methods": ["Iconography", "Semiotic Analysis"], "tools": ["Digital Media"], "facets": ["Aesthetics", "Communication"]},
+        "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Bibliometrics"], "tools": ["Metadata Schemas"], "facets": ["Ontology", "Retrieval"]}
     }
 }
 
 # =========================================================
-# 2. ENHANCED GROKIPEDIA REAL-TIME ACCESS
+# 2. ULTRA-DEEP GROKIPEDIA SEARCH MODULE
 # =========================================================
-def get_grokipedia_data(query, selected_fields):
-    """Pridobi faktografske podatke in sezname avtorjev iz Grokipedie."""
+def get_master_grokipedia_data(query, fields, target_keywords=""):
+    """
+    Izvede 4-fazno iskanje: 
+    1. Splošna dejstva 2. Avtorji/Raziskovalci 3. Časovna premica 4. Specifični pojmi.
+    """
     if GrokipediaClient is None:
-        return "Grokipedia Connection: Standby mode. AI will use internal author database."
+        return None, "Grokipedia Client: Standby mode. AI utilizing internal 2026 schema."
     
     try:
         client = GrokipediaClient()
-        # Razširimo poizvedbo, da vključimo avtorje za izbrana polja
-        enhanced_query = f"{query} and prominent authors or researchers in {', '.join(selected_fields)}"
-        search_results = client.search(enhanced_query, limit=8)
+        master_context = []
+        raw_debug = []
+
+        # FAZA 1: Splošna dejstva
+        q1 = client.search(query, limit=2)
+        # FAZA 2: Avtorji
+        q2 = client.search(f"notable researchers, authors and scholars in {', '.join(fields)} for {query}", limit=3)
+        # FAZA 3: Specifični pojmi
+        q3 = []
+        if target_keywords:
+            q3 = client.search(f"technical data on {target_keywords}", limit=3)
         
-        if search_results and 'results' in search_results:
-            context = "### VERIFIED GROKIPEDIA REAL-TIME DATA & AUTHORS:\n"
-            for item in search_results['results']:
-                title = item.get('title', 'Verified Source')
-                summary = item.get('summary', 'No summary.')
-                context += f"• SOURCE: {title}\n  DATA/AUTHORS: {summary}\n\n"
-            return context
-        return "Grokipedia found no specific entries. AI will synthesize based on verified academic patterns."
+        # Agregacija
+        for q in [q1, q2, q3]:
+            if q and 'results' in q:
+                for res in q['results']:
+                    title = res.get('title', 'Unknown')
+                    summary = res.get('summary', 'No summary.')
+                    master_context.append(f"• **{title}**: {summary}")
+                    raw_debug.append({"title": title, "summary": summary})
+        
+        if not master_context:
+            return None, "No specific factual results found."
+            
+        formatted_context = "### 🌍 GROKIPEDIA MASTER FACTUAL BASE:\n" + "\n".join(master_context)
+        return raw_debug, formatted_context
     except Exception as e:
-        return f"Grokipedia Status: Connected. Simulation mode active due to: {str(e)}"
+        return None, f"Grokipedia connectivity limited: {str(e)}"
 
 # =========================================================
-# 3. STREAMLIT INTERFACE (Full Sidebar Restored)
+# 3. STREAMLIT INTERFACE
 # =========================================================
-st.set_page_config(page_title="SIS Synthesizer v6.8", page_icon="🌳", layout="wide")
+st.set_page_config(page_title="SIS Synthesizer v8.0 Master", page_icon="🌳", layout="wide")
 
-if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
+if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Expert"
 
-# --- SIDEBAR (FULL VERSION) ---
+# --- SIDEBAR (FULL DIAGNOSTIC VERSION) ---
 with st.sidebar:
-    st.markdown(f'<div style="display: flex; justify-content: center; margin-bottom: 10px;"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
-    
-    st.header("⚙️ Control Panel")
+    st.markdown(f'<div style="text-align:center;"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
+    st.header("⚙️ Master Control")
     api_key = st.text_input("Groq API Key:", type="password")
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-    enable_grok = st.checkbox("🌐 Enable Grokipedia Real-time Access", value=True)
+    enable_grok = st.checkbox("🌐 Enable Master Grokipedia Access", value=True)
+    show_debug = st.checkbox("🔍 Enable Factual Debugger", value=False)
     st.divider()
 
-    with st.popover("📖 Lego Building Guide", use_container_width=True):
-        st.markdown("### Process:\n1. Choose Profiles\n2. Select Science Fields\n3. Match with Authors via Grokipedia")
-
-    st.subheader("🚀 Quick Templates")
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        if st.button("🎓 Academic", use_container_width=True):
-            st.session_state.expertise_val = "Expert"; st.rerun()
-    with col_t2:
-        if st.button("👶 Learner", use_container_width=True):
-            st.session_state.expertise_val = "Novice"; st.rerun()
-
+    with st.expander("🚀 Quick Templates"):
+        col_t1, col_t2 = st.columns(2)
+        with col_t1:
+            if st.button("🎓 Academic"): st.session_state.expertise_val = "Expert"; st.rerun()
+        with col_t2:
+            if st.button("👶 Learner"): st.session_state.expertise_val = "Novice"; st.rerun()
+    
     st.divider()
-    st.subheader("📚 Knowledge Explorer")
-    with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['description']}")
-    with st.expander("🌍 Scientific Paradigms"):
+    st.subheader("🏗️ Knowledge Explorer")
+    with st.expander("👤 Profile Drivers"):
+        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['drivers']}")
+    with st.expander("🌍 Paradigms"):
         for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
-    with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-    if st.button("♻️ Reset Session", use_container_width=True):
-        st.session_state.clear(); st.rerun()
-    
-    st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
+    if st.button("♻️ RESET ALL", use_container_width=True): st.session_state.clear(); st.rerun()
+    st.link_button("🌐 GITHUB REPOSITORY", "https://github.com/", use_container_width=True)
 
-# --- MAIN INTERFACE (MULTI-SELECT) ---
-st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("### 🛠️ Multi-Dimensional Architecture & Real-Time Author Search")
+# --- MAIN WORKSPACE ---
+st.title("🧱 SIS Universal Knowledge Synthesizer (v8.0 Master)")
+st.markdown("### 🛠️ Multi-Dimensional Research & Synthesis Engine")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
+    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers", "Know-it-alls"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 with col2:
-    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
-    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Educational", "Innovation", "Problem Solving"])
+    selected_paradigms = st.multiselect("2. Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism", "Empiricism"])
+    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Policy Making", "Innovation Strategy", "Problem Solving"])
 with col3:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
     selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=["Physics", "Philosophy"])
-    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
+    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts", "Glossary"])
 
 st.divider()
 
-# Dinamična agregacija metod in facetov
-agg_methods, agg_facets = [], []
+# Dinamična agregacija (Metode, Orodja, Faceti)
+agg_methods, agg_tools, agg_facets = [], [], []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-    agg_facets.extend(KNOWLEDGE_BASE["subject_details"][s].get("facets", []))
+    agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    agg_facets.extend(KNOWLEDGE_BASE["subject_details"][s]["facets"])
 
 agg_methods = sorted(list(set(agg_methods)))
+agg_tools = sorted(list(set(agg_tools)))
 agg_facets = sorted(list(set(agg_facets)))
 
-col4, col5 = st.columns(2)
-with col4:
-    selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=["Perspective shifting"])
-with col5:
-    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
-
-if agg_facets:
-    st.info(f"**Sub-facets involved:** {', '.join(agg_facets)}")
-
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on the ethics of neuro-AI integration.")
+colA, colB = st.columns([2, 1])
+with colA:
+    user_query = st.text_area("❓ Strategic Synthesis Inquiry:", placeholder="e.g. Synthesize the intersection of neuro-ethics and distributed AI systems.")
+with colB:
+    target_keywords = st.text_input("🎯 Specific Authors / Keywords:", placeholder="e.g. Chalmers, Penrose, Blockchain")
+    selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=["Perspective shifting", "Balance"])
 
 # =========================================================
-# 4. CORE SYNTHESIS LOGIC (AI + Grokipedia Authors)
+# 4. CORE SYNTHESIS LOGIC (AI + Deep Search)
 # =========================================================
-if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
+if st.button("🚀 EXECUTE MASTER SYNTHESIS", use_container_width=True):
     if not api_key:
         st.error("Missing Groq API Key.")
-    elif not selected_sciences or not selected_profiles:
-        st.error("Please select Fields and Profiles.")
+    elif not selected_sciences:
+        st.error("Select at least one science field.")
     else:
         try:
-            # 1. Pridobivanje podatkov o avtorjih iz Grokipedie
-            grok_facts = ""
+            # 1. GROKIPEDIA DEEP SEARCH
+            raw_facts, grok_context = None, ""
             if enable_grok:
-                with st.spinner('Scanning Grokipedia for real-time authors and data...'):
-                    grok_facts = get_grokipedia_data(user_query, selected_sciences)
+                with st.spinner('Accessing Master Knowledge Base (Grokipedia)...'):
+                    raw_facts, grok_context = get_master_grokipedia_data(user_query, selected_sciences, target_keywords)
             
-            # 2. AI Sinteza
+            # Debug prikaz
+            if show_debug and raw_facts:
+                with st.expander("🔍 RAW FACTUAL DEBUGGER (Found Entries):"):
+                    for r in raw_facts: st.info(f"**{r['title']}**: {r['summary']}")
+
+            # 2. OPENAI/GROQ EXECUTION
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            p_info = ", ".join([f"{p} ({KNOWLEDGE_BASE['profiles'][p]['description']})" for p in selected_profiles])
-            mo_info = ", ".join([f"{m} ({KNOWLEDGE_BASE['knowledge_models'][m]})" for m in selected_models])
+            p_desc = ", ".join([f"{p} ({KNOWLEDGE_BASE['profiles'][p]['description']})" for p in selected_profiles])
+            pa_desc = ", ".join([f"{p} ({KNOWLEDGE_BASE['paradigms'][p]})" for p in selected_paradigms])
+            mo_desc = ", ".join([f"{m} ({KNOWLEDGE_BASE['knowledge_models'][m]})" for m in selected_models])
 
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. You use 'Lego Logic' to build complex knowledge structures.
+            You are the SIS Universal Knowledge Synthesizer (v8.0 Master Edition).
+            You operate under the 'Lego Logic' framework: modular, structural, and synthetic.
             
-            GROKIPEDIA FACTUAL BASE (Cite these authors and facts):
-            {grok_facts if enable_grok else "Use internal academic database."}
+            FACTUAL FOUNDATION (Strictly anchor 75% of your logic here):
+            {grok_context if enable_grok else "Use 2026 verified academic database."}
             
-            INTEGRATED PROFILES: {p_info}
-            EXPERTISE: {expertise}
+            INTEGRATED PERSPECTIVES (Address all): {p_desc}
+            EXPERTISE LEVEL: {expertise}
             GOAL: {goal_context}
             
-            DIMENSIONS:
-            - Paradigms: {", ".join(selected_paradigms)}
+            DIMENSIONS TO INTEGRATE SIMULTANEOUSLY:
+            - Paradigms: {pa_desc}
             - Mental Approaches: {", ".join(selected_approaches)}
             - Science Fields: {", ".join(selected_sciences)} (Facets: {", ".join(agg_facets)})
-            - Methods: {", ".join(selected_methods)}
-            - Structural Models: {mo_info}
+            - Methodologies: {", ".join(selected_methods) if selected_methods else "Advanced synthesis"}
+            - Structural Models: {mo_desc}
+            - Focus Keywords: {target_keywords}
 
-            RULES:
-            1. AUTHORSHIP: You MUST explicitly mention and integrate the authors and researchers found in the Grokipedia context.
-            2. CROSS-POLLINATION: Combine the selected sciences into a unified framework.
-            3. COGNITIVE LENS: Filter logic through the selected Mental Approaches.
+            CONSTRUCTION RULES:
+            1. MASTER SYNTHESIS: Cross-pollinate the selected science fields. Show how {selected_sciences[0]} methodology informs {selected_sciences[-1]} concepts.
+            2. COGNITIVE FILTER: All logic must pass through the {", ".join(selected_approaches)} lens.
+            3. AUTHORSHIP: You MUST explicitly integrate researchers/authors found in the Grokipedia context.
             4. TONE: {expertise} level. Language: English.
             """
             
-            with st.spinner('Synthesizing across all dimensions...'):
+            with st.spinner('Synthesizing Master Architecture...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
-                    temperature=0.6
+                    temperature=0.5
                 )
-                st.subheader("📊 Synthesis Output (Grokipedia Verified)")
+                st.subheader("📊 Master Synthesis Output (Verified & Structured)")
                 st.markdown(response.choices[0].message.content)
                 
         except Exception as e:
-            st.error(f"Synthesis failed: {e}")
+            st.error(f"Execution failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v6.8 Total Synthesis & Author Discovery | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v8.0 Master Edition | 2026")
