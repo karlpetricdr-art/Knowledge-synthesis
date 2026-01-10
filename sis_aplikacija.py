@@ -5,7 +5,7 @@ import requests
 from openai import OpenAI
 import streamlit.components.v1 as components
 
-# Poskus uvoza knjižnice, če pa ne gre, bomo uporabili fallback metodo spodaj
+# --- POSKUS UVOZA GROKIPEDIA KNJIŽNICE ---
 try:
     from grokipedia import Grokipedia
     GROK_LIB_AVAILABLE = True
@@ -28,7 +28,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. LOGO & POMOŽNE FUNKCIJE
+# 0. POMOŽNE FUNKCIJE IN LOGO
 # =========================================================
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
@@ -61,11 +61,18 @@ SVG_3D_RELIEF = """
 def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
-# Funkcija za pridobivanje podatkov, če knjižnica ne deluje
-def fetch_grokipedia_fallback(query):
-    # Ker uradni API ne obstaja, knjižnica verjetno izvaja scraping
-    # Tukaj pripravimo prostor za ročni fetch, če bi knjižnica odpovedala
-    return f"Deep search query for: {query}. (Data fetching via integrated fallback method)."
+# --- NOVA UČINKOVITA SEKUNDARNA METODA ---
+def fetch_secondary_knowledge(query):
+    """Pridobi podatke preko Wikipedia API kot alternativo Grokipediji."""
+    try:
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.replace(' ', '_')}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return f"\n\nEXTRACTED CONTEXT: {data.get('extract', '')}"
+        return ""
+    except:
+        return ""
 
 # =========================================================
 # 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
@@ -193,7 +200,6 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Vstavljanje GA4
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: 
@@ -202,7 +208,6 @@ if 'expertise_val' not in st.session_state:
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
-# --- SIDEBAR START ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     
@@ -212,13 +217,11 @@ with st.sidebar:
         api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-    
-    # GROKIPEDIA CONTROL
     st.subheader("🌐 Knowledge Enhancement")
     enable_grok = st.checkbox("Enhance with Grokipedia [all]", value=False)
     
     if enable_grok and not GROK_LIB_AVAILABLE:
-        st.info("💡 Library not detected, using secondary search method.")
+        st.warning("⚠️ Library not detected, using secondary search method.")
 
     st.divider()
 
@@ -238,22 +241,11 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("📚 Knowledge Explorer")
-    with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items():
-            st.write(f"**{p}**: {d['description']}")
-    
-    with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-            st.write(f"**{m}**: {d}")
-
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
-    
-    st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
 
-# --- MAIN SELECTION INTERFACE ---
+# --- MAIN SELECTION ---
 st.markdown("### 🛠️ Configuration")
 col1, col2, col3 = st.columns(3)
 
@@ -270,7 +262,6 @@ with col3:
 
 st.divider()
 
-# Aggregation logic
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
@@ -288,14 +279,13 @@ with col6:
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Ask anything...")
 
 # =========================================================
-# 3. EXECUTION LOGIC
+# 3. CORE SYNTHESIS LOGIC
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
         st.error("Missing Groq API Key.")
     else:
         try:
-            # GROKIPEDIA SEARCH LOGIC
             grok_data = ""
             if enable_grok:
                 with st.spinner('Gathering extra knowledge...'):
@@ -303,11 +293,12 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                         try:
                             grok = Grokipedia()
                             res = grok.search(user_query)
-                            if res: grok_data = f"\n\nGROKIPEDIA INSIGHTS: {res[0].summary}"
+                            if res: grok_data = f"\n\nGROKIPEDIA DATA: {res[0].summary}"
                         except:
-                            grok_data = fetch_grokipedia_fallback(user_query)
+                            grok_data = fetch_secondary_knowledge(user_query)
                     else:
-                        grok_data = fetch_grokipedia_fallback(user_query)
+                        # Če knjižnica manjka, takoj uporabi učinkovito sekundarno metodo
+                        grok_data = fetch_secondary_knowledge(user_query)
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
@@ -319,9 +310,12 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             - Sciences: {", ".join(selected_sciences)}
             - Models: {", ".join(selected_models)}
             - Tone: {expertise}
-            {grok_data}
             
-            Synthesize the knowledge precisely and multidimensionally.
+            INSTRUCTIONS:
+            1. Integrate the following EXTRA CONTEXT into your synthesis to make it more accurate:
+            {grok_data if grok_data else "No extra context found."}
+            
+            2. Synthesize the knowledge precisely and multidimensionally.
             """
             
             with st.spinner('Synthesizing...'):
@@ -337,4 +331,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.1 | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.2 | 2026")
