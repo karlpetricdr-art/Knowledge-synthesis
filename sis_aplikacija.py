@@ -3,6 +3,7 @@ import json
 import base64
 from openai import OpenAI
 import streamlit.components.v1 as components  # Dodano za Google Analytics
+from grokipedia import Grokipedia  # Integracija Grokipedia API
 
 # =========================================================
 # GOOGLE ANALYTICS INTEGRACIJA
@@ -205,6 +206,11 @@ with st.sidebar:
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
     
+    # Dodano: Stikalo za Grokipedia API
+    st.divider()
+    st.subheader("🌐 External Knowledge")
+    enable_grok = st.checkbox("Enable Grokipedia [all] Enhancement", value=False)
+    
     st.divider()
 
     with st.popover("📖 Lego Building Guide", use_container_width=True):
@@ -257,7 +263,7 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
-    # Gumbi s povezavami (Grokipedia odstranjena)
+    # Gumbi s povezavami
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
@@ -302,7 +308,7 @@ with col6:
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI)
+# 3. CORE SYNTHESIS LOGIC (Groq AI + Grokipedia Integration)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
@@ -311,6 +317,20 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
+            # --- INTEGRACIJA GROKIPEDIA ---
+            grokipedia_context = ""
+            if enable_grok:
+                with st.spinner('Searching Grokipedia for deep context...'):
+                    try:
+                        grok = Grokipedia()
+                        # Iskanje po Grokipedii (uporaba 'all' metodologije)
+                        search_results = grok.search(user_query)
+                        if search_results:
+                            # Vzamemo povzetek najbolj relevantnega rezultata
+                            grokipedia_context = f"\n\nCONTEXT FROM GROKIPEDIA:\n{search_results[0].summary}"
+                    except Exception as ge:
+                        st.warning(f"Grokipedia search limited or unavailable: {ge}")
+
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
             # Priprava pluralnih nizov za prompt
@@ -346,6 +366,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             5. Integration: Ensure a high-level synthesis (cross-pollination) between all chosen dimensions.
             6. Tone: Adjust for a {expertise} level. 
             7. Language: English.
+            {grokipedia_context}
             """
             
             with st.spinner('Synthesizing complex knowledge structure...'):
