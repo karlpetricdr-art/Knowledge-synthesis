@@ -1,14 +1,20 @@
 import streamlit as st
 import json
 import base64
+import requests
 from openai import OpenAI
-import streamlit.components.v1 as components  # Dodano za Google Analytics
-from grokipedia import Grokipedia  # Integracija Grokipedia API
+import streamlit.components.v1 as components
+
+# --- VARNOSTNI UVOZ GROKIPEDIA ---
+try:
+    from grokipedia import Grokipedia
+    GROK_AVAILABLE = True
+except ImportError:
+    GROK_AVAILABLE = False
 
 # =========================================================
 # GOOGLE ANALYTICS INTEGRACIJA
 # =========================================================
-# V spodnjo spremenljivko vstavite svoj ID merjenja (Measurement ID)
 GA_ID = "G-90E8P7QLF6" 
 
 ga_code = f"""
@@ -22,7 +28,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
+# 0. 3D RELIEF LOGO (Embedded SVG)
 # =========================================================
 SVG_3D_RELIEF = """
 <svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
@@ -56,7 +62,7 @@ def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (Polna verzija)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -181,12 +187,12 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Vstavljanje Google Analytics kode takoj za konfiguracijo strani
+# Vstavljanje Google Analytics
 components.html(ga_code, height=0)
 
-if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
+if 'expertise_val' not in st.session_state: 
+    st.session_state.expertise_val = "Intermediate"
 
-# Naslov na vrhu osrednje strani
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
@@ -206,11 +212,14 @@ with st.sidebar:
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
     
-    # Dodano: Stikalo za Grokipedia API
     st.divider()
-    st.subheader("🌐 External Knowledge")
-    enable_grok = st.checkbox("Enable Grokipedia [all] Enhancement", value=False)
     
+    # GROKIPEDIA MOŽNOST
+    st.subheader("🌐 External Knowledge")
+    enable_grok = st.checkbox("Enable Grokipedia [all] Enhancement", value=False, disabled=not GROK_AVAILABLE)
+    if not GROK_AVAILABLE:
+        st.caption("⚠️ Grokipedia library not detected. Check requirements.txt")
+
     st.divider()
 
     with st.popover("📖 Lego Building Guide", use_container_width=True):
@@ -263,7 +272,6 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
-    # Gumbi s povezavami
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
@@ -286,14 +294,12 @@ with col3:
 
 st.divider()
 
-# Dinamična agregacija metod in orodij glede na izbrane znanosti
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-# Odstranimo duplikate in sortiramo
 agg_methods = sorted(list(set(agg_methods)))
 agg_tools = sorted(list(set(agg_tools)))
 
@@ -308,7 +314,7 @@ with col6:
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI + Grokipedia Integration)
+# 3. CORE SYNTHESIS LOGIC
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
@@ -317,23 +323,20 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # --- INTEGRACIJA GROKIPEDIA ---
-            grokipedia_context = ""
-            if enable_grok:
-                with st.spinner('Searching Grokipedia for deep context...'):
+            # GROKIPEDIA INTEGRACIJA
+            grok_context = ""
+            if enable_grok and GROK_AVAILABLE:
+                with st.spinner('Deep searching Grokipedia...'):
                     try:
                         grok = Grokipedia()
-                        # Iskanje po Grokipedii (uporaba 'all' metodologije)
-                        search_results = grok.search(user_query)
-                        if search_results:
-                            # Vzamemo povzetek najbolj relevantnega rezultata
-                            grokipedia_context = f"\n\nCONTEXT FROM GROKIPEDIA:\n{search_results[0].summary}"
+                        results = grok.search(user_query)
+                        if results:
+                            grok_context = f"\n\nADDITIONAL CONTEXT FROM GROKIPEDIA:\n{results[0].summary}"
                     except Exception as ge:
-                        st.warning(f"Grokipedia search limited or unavailable: {ge}")
+                        st.warning(f"Grokipedia search failed: {ge}")
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # Priprava pluralnih nizov za prompt
             profiles_str = ", ".join(selected_profiles)
             paradigms_str = ", ".join(selected_paradigms)
             sciences_str = ", ".join(selected_sciences)
@@ -352,7 +355,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             DIMENSIONS:
             - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Mental Approaches: {approaches_str}
             - Sciences: {sciences_str}
             - Methodologies: {methods_str}
             - Tools: {tools_str}
@@ -360,16 +363,16 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             CONSTRUCTION RULES:
             1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
-            2. Cognitive Lens: Apply the combination of '{approaches_str}' as the primary filter for processing information.
-            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and tools as components.
-            4. Plan: Structure the output strictly according to the combined requirements of the selected Structural Models: {models_str}.
-            5. Integration: Ensure a high-level synthesis (cross-pollination) between all chosen dimensions.
-            6. Tone: Adjust for a {expertise} level. 
+            2. Cognitive Lens: Apply the combination of '{approaches_str}' as the filter.
+            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and tools.
+            4. Plan: Structure strictly according to the Structural Models: {models_str}.
+            5. Integration: Ensure cross-pollination.
+            6. Tone: {expertise} level.
             7. Language: English.
-            {grokipedia_context}
+            {grok_context}
             """
             
-            with st.spinner('Synthesizing complex knowledge structure...'):
+            with st.spinner('Synthesizing...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
