@@ -21,7 +21,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. POMOŽNE FUNKCIJE IN LOGO
+# 0. POMOŽNE FUNKCIJE IN LOGO (Embedded SVG)
 # =========================================================
 def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
@@ -54,24 +54,27 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-def search_academic_papers(query):
-    """Pridobi znanstvene povzetke preko Semantic Scholar API-ja."""
+def fetch_academic_context(query, authors=""):
+    """Pridobi znanstvene vire z močnim poudarkom na določenih avtorjih."""
+    combined_query = f"{authors} {query}" if authors else query
     try:
-        url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit=3&fields=title,year,abstract"
-        res = requests.get(url, timeout=7).json()
+        url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={combined_query}&limit=5&fields=title,authors,year,abstract,url"
+        res = requests.get(url, timeout=10).json()
         papers = res.get('data', [])
-        academic_str = ""
+        
+        context_str = ""
         for p in papers:
-            title = p.get('title', 'N/A')
-            year = p.get('year', 'N/A')
-            abstract = p.get('abstract', 'No abstract available.')
-            academic_str += f"Paper: {title} ({year})\nAbstract: {abstract[:300]}...\n\n"
-        return academic_str if academic_str else "No specific academic papers found."
-    except Exception:
-        return "Academic database connection error."
+            auth_names = ", ".join([a['name'] for a in p.get('authors', [])])
+            context_str += f"Title: {p['title']} ({p['year']}) | Authors: {auth_names}\n"
+            if p.get('abstract'):
+                context_str += f"Abstract: {p['abstract'][:300]}...\n"
+            context_str += "---\n"
+        return context_str if context_str else "No direct academic matches found."
+    except:
+        return "Academic search node timeout."
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -196,15 +199,16 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Vstavljanje GA4
+# Vstavljanje Google Analytics
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
+# Naslov strani
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
-# --- SIDEBAR START ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     
@@ -215,10 +219,14 @@ with st.sidebar:
     
     st.divider()
     
-    # AKADEMSKA MOŽNOST
-    st.subheader("🎓 Knowledge Enhancement")
-    enable_scholar = st.checkbox("Enable Academic Search [Scholar]", value=False)
-    
+    # AKADEMSKI TRIGGER
+    st.subheader("🎓 Academic Trigger")
+    enable_scholar = st.checkbox("Enable Deep Academic Search", value=False)
+    target_authors = ""
+    if enable_scholar:
+        target_authors = st.text_input("Authors to prioritize:", placeholder="Karl Petric, Samo Kralj...")
+        st.caption("Focuses the synthesis on specific researchers.")
+
     st.divider()
 
     with st.popover("📖 Lego Building Guide", use_container_width=True):
@@ -274,18 +282,16 @@ with st.sidebar:
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
-# --- MAIN SELECTION INTERFACE ---
+# --- CONFIGURATION INTERFACE ---
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
-
 with col2:
     selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
-
 with col3:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
     selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=[sciences_list[0]])
@@ -299,72 +305,60 @@ for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
+agg_methods = sorted(list(set(agg_methods)))
+agg_tools = sorted(list(set(agg_tools)))
+
 col4, col5, col6 = st.columns(3)
 with col4:
     selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 with col5:
-    selected_methods = st.multiselect("6. Methodologies:", sorted(list(set(agg_methods))))
+    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
 with col6:
-    selected_tools = st.multiselect("7. Specific Tools:", sorted(list(set(agg_tools))))
+    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize the intersection of neurobiology and AI.")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize the intersection of...")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI)
+# 3. EXECUTION LOGIC
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Missing Groq API Key in the sidebar.")
-    elif not selected_sciences:
-        st.warning("Please select at least one Science Field.")
+        st.error("Missing Groq API Key.")
     else:
         try:
-            # 1. PRIDOBIVANJE AKADEMSKIH PODATKOV
-            extra_academic_info = ""
+            academic_data = ""
             if enable_scholar:
-                with st.spinner('Searching academic nodes for evidence...'):
-                    extra_academic_info = search_academic_papers(user_query)
+                with st.spinner(f'Fetching academic context for {target_authors}...'):
+                    academic_data = fetch_academic_context(user_query, target_authors)
             
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            profiles_str = ", ".join(selected_profiles)
-            paradigms_str = ", ".join(selected_paradigms)
-            sciences_str = ", ".join(selected_sciences)
-            models_str = ", ".join(selected_models)
-            approaches_str = ", ".join(selected_approaches)
-            methods_str = ", ".join(selected_methods) if selected_methods else "general methods"
-            tools_str = ", ".join(selected_tools) if selected_tools else "standard tools"
-            
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. Build a multidimensional 'Lego Logic' architecture.
+            You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' knowledge architecture.
             
-            ACADEMIC CONTEXT (Incorporate this data):
-            {extra_academic_info if extra_academic_info else "No extra academic context found."}
+            ACADEMIC CONTEXT:
+            {academic_data if academic_data else "Use internal scientific knowledge base."}
 
-            USER CONFIGURATION:
-            - Profiles: {profiles_str}
-            - Expertise: {expertise}
-            - Goal: {goal_context}
-            - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str}
-            - Sciences: {sciences_str}
-            - Structural Models: {models_str}
-
-            CONSTRUCTION RULES:
-            1. Foundation: Use Paradigms as the base.
-            2. Evidence: Integrate findings from Academic Context into the synthesis.
-            3. Structure: Strictly follow the selected Models: {models_str}.
-            4. Level: Tone for {expertise}.
-            5. Language: English.
+            USER PARAMETERS:
+            - Profiles: {", ".join(selected_profiles)}
+            - Paradigms: {", ".join(selected_paradigms)}
+            - Sciences: {", ".join(selected_sciences)}
+            - Models: {", ".join(selected_models)}
+            - Approaches: {", ".join(selected_approaches)}
+            - Level: {expertise}
+            
+            RULES:
+            1. MANDATORY: Integrate findings from ACADEMIC CONTEXT if provided.
+            2. Apply cognitive lenses of {", ".join(selected_approaches)}.
+            3. Build the response as a multidimensional synthesis.
             """
             
-            with st.spinner('Synthesizing complex knowledge structure...'):
+            with st.spinner('Synthesizing...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
-                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
@@ -372,4 +366,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.5 Scholar Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.6 Scholar Trigger Edition | 2026")
