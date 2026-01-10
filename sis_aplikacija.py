@@ -5,13 +5,6 @@ import requests
 from openai import OpenAI
 import streamlit.components.v1 as components
 
-# --- POSKUS UVOZA GROKIPEDIA KNJIŽNICE ---
-try:
-    from grokipedia import Grokipedia
-    GROK_LIB_AVAILABLE = True
-except ImportError:
-    GROK_LIB_AVAILABLE = False
-
 # =========================================================
 # GOOGLE ANALYTICS INTEGRACIJA
 # =========================================================
@@ -28,7 +21,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. POMOŽNE FUNKCIJE IN LOGO
+# 0. POMOŽNE FUNKCIJE IN LOGO (Embedded SVG)
 # =========================================================
 def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
@@ -61,22 +54,23 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-def search_external_knowledge(query):
-    """Fallback iskanje, če knjižnica grokipedia-api ne najde specifičnih prispevkov."""
+def search_google_scholar(query):
+    """Pridobi akademske podatke preko CrossRef API (znanstvena alternativa)."""
     try:
-        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&format=json"
-        s_res = requests.get(search_url, timeout=5).json()
-        if s_res['query']['search']:
-            title = s_res['query']['search'][0]['title']
-            summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title.replace(' ', '_')}"
-            summary_res = requests.get(summary_url, timeout=5).json()
-            return f"Context from Knowledge Base: {summary_res.get('extract', '')}"
+        url = f"https://api.crossref.org/works?query={query}&rows=3"
+        res = requests.get(url, timeout=5).json()
+        items = res.get('message', {}).get('items', [])
+        academic_str = ""
+        for item in items:
+            title = item.get('title', ['N/A'])[0]
+            year = item.get('created', {}).get('date-parts', [[0]])[0][0]
+            academic_str += f"- {title} ({year})\n"
+        return academic_str if academic_str else "No specific papers found."
     except:
-        pass
-    return ""
+        return "Academic database search failed."
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (POLNA VERZIJA)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -201,15 +195,16 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Vstavljanje GA4
+# Vstavljanje Google Analytics
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
+# Naslov
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
-# --- SIDEBAR ---
+# --- SIDEBAR START ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     
@@ -219,15 +214,22 @@ with st.sidebar:
         api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-    st.subheader("🌐 Knowledge Enhancement")
-    enable_grok = st.checkbox("Enable Grokipedia [all] Search", value=False)
     
-    # Specifično polje za iskanje vaših prispevkov
-    target_topics = ""
-    if enable_grok:
-        target_topics = st.text_input("Target Topics/Articles:", placeholder="e.g. My SIS Theory, Metadata Architecture...")
-
+    # AKADEMSKO ISKANJE (Namesto Grokipedie)
+    st.subheader("🎓 Academic Enhancement")
+    enable_scholar = st.checkbox("Enable Google Scholar [CrossRef]", value=False)
+    
     st.divider()
+
+    with st.popover("📖 Lego Building Guide", use_container_width=True):
+        st.markdown("""
+        ### Synthesis Process:
+        1. **Foundation:** Choose your **Paradigms**.
+        2. **Bricks:** Select **Sciences**, **Methods**, and **Tools**.
+        3. **Building Plan:** Select the **Structural Models**.
+        4. **Target View:** Match with your **Profiles**.
+        """)
+
     st.subheader("🚀 Quick Templates")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -240,19 +242,31 @@ with st.sidebar:
             st.rerun()
 
     st.divider()
+
     st.subheader("📚 Knowledge Explorer")
     with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['description']}")
+        for p, d in KNOWLEDGE_BASE["profiles"].items():
+            st.write(f"**{p}**: {d['description']}")
+
     with st.expander("🧠 Mental Approaches"):
-        for approach in KNOWLEDGE_BASE["mental_approaches"]: st.write(f"• {approach}")
+        for approach in KNOWLEDGE_BASE["mental_approaches"]:
+            st.write(f"• {approach}")
+
     with st.expander("🌍 Scientific Paradigms"):
-        for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
+        for p, d in KNOWLEDGE_BASE["paradigms"].items():
+            st.write(f"**{p}**: {d}")
+
     with st.expander("🔬 Science Fields"):
-        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()): st.write(f"• **{s}**")
+        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
+            d = KNOWLEDGE_BASE["subject_details"][s]
+            st.write(f"• **{s}** ({d['cat']})")
+
     with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
+        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
+            st.write(f"**{m}**: {d}")
     
     st.divider()
+
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
@@ -260,20 +274,22 @@ with st.sidebar:
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
 
-# --- MAIN CONFIGURATION ---
+# --- MAIN SELECTION INTERFACE ---
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
+    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=[list(KNOWLEDGE_BASE["profiles"].keys())[0]])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
+
 with col2:
-    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
-    goal_context = st.selectbox("Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
+    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=[list(KNOWLEDGE_BASE["paradigms"].keys())[0]])
+    goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
+
 with col3:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=["Physics"])
-    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
+    selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=[sciences_list[0]])
+    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
 
 st.divider()
 
@@ -284,67 +300,80 @@ for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
+agg_methods = sorted(list(set(agg_methods)))
+agg_tools = sorted(list(set(agg_tools)))
+
 col4, col5, col6 = st.columns(3)
 with col4:
     selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 with col5:
-    selected_methods = st.multiselect("6. Methodologies:", sorted(list(set(agg_methods))))
+    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
 with col6:
-    selected_tools = st.multiselect("7. Specific Tools:", sorted(list(set(agg_tools))))
+    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize your knowledge...")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
 
 # =========================================================
-# 3. CORE LOGIC
+# 3. CORE SYNTHESIS LOGIC (Groq AI)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
-        st.error("Missing Groq API Key.")
+        st.error("Missing Groq API Key in the sidebar.")
+    elif not selected_sciences:
+        st.warning("Please select at least one Science Field.")
     else:
         try:
-            extra_context = ""
-            if enable_grok:
-                with st.spinner('Connecting to Grokipedia nodes...'):
-                    # Če knjižnica grokipedia-api ne deluje po pričakovanjih,
-                    # vključimo iskalni niz v prompt za AI
-                    if GROK_LIB_AVAILABLE:
-                        try:
-                            grok = Grokipedia()
-                            res = grok.search(target_topics if target_topics else user_query)
-                            if res: extra_context = f"\n\nGROKIPEDIA DATA: {res[0].summary}"
-                        except: extra_context = search_external_knowledge(user_query)
-                    else:
-                        extra_context = search_external_knowledge(user_query)
-
+            # Pridobivanje akademskih podatkov
+            academic_context = ""
+            if enable_scholar:
+                with st.spinner('Searching academic databases...'):
+                    academic_context = search_google_scholar(user_query)
+            
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # Priprava prompta
+            profiles_str = ", ".join(selected_profiles)
+            paradigms_str = ", ".join(selected_paradigms)
+            sciences_str = ", ".join(selected_sciences)
+            models_str = ", ".join(selected_models)
+            approaches_str = ", ".join(selected_approaches)
+            methods_str = ", ".join(selected_methods) if selected_methods else "general methods"
+            tools_str = ", ".join(selected_tools) if selected_tools else "standard tools"
+            
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
+            You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
             
-            EXTERNAL CONTEXT TO INCORPORATE:
-            {extra_context if extra_context else "Use internal knowledge."}
-            Target User Topics: {target_topics}
+            ACADEMIC EVIDENCE (Google Scholar):
+            {academic_context if academic_context else "Use internal scientific knowledge."}
 
-            DIMENSIONS:
-            - Profiles: {", ".join(selected_profiles)}
-            - Paradigms: {", ".join(selected_paradigms)}
-            - Sciences: {", ".join(selected_sciences)}
-            - Structural Models: {", ".join(selected_models)}
-            - Mental Approaches: {", ".join(selected_approaches)}
-            - Tone/Expertise: {expertise}
+            USER ATTRIBUTES:
+            - Profiles: {profiles_str}
+            - Expertise Level: {expertise}
+            - Goal: {goal_context}
             
-            INSTRUCTIONS:
-            1. Integrate the 'EXTERNAL CONTEXT' and 'Target User Topics' as primary building blocks.
-            2. Build a multidimensional synthesis.
-            3. Language: English.
+            DIMENSIONS:
+            - Paradigms: {paradigms_str}
+            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Sciences: {sciences_str}
+            - Methodologies: {methods_str}
+            - Tools: {tools_str}
+            - Structural Models: {models_str}
+
+            CONSTRUCTION RULES:
+            1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
+            2. Integrate Academic Evidence into the synthesis for higher credibility.
+            3. Plan: Structure the output strictly according to the selected Structural Models: {models_str}.
+            4. Tone: Adjust for a {expertise} level. 
+            5. Language: English.
             """
             
-            with st.spinner('Synthesizing...'):
+            with st.spinner('Synthesizing complex knowledge structure...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
+                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
@@ -352,4 +381,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.4 Full Ontology Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.5 Scholar Edition | 2026")
