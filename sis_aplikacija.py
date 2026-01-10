@@ -2,6 +2,23 @@ import streamlit as st
 import json
 import base64
 from openai import OpenAI
+import streamlit.components.v1 as components  # Dodano za Google Analytics
+
+# =========================================================
+# GOOGLE ANALYTICS INTEGRACIJA
+# =========================================================
+# V spodnjo spremenljivko vstavite svoj ID merjenja (Measurement ID)
+GA_ID = "G-90E8P7QLF6" 
+
+ga_code = f"""
+    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{GA_ID}');
+    </script>
+"""
 
 # =========================================================
 # 0. 3D RELIEF LOGO (Embedded SVG with Depth & Shadows)
@@ -162,6 +179,9 @@ KNOWLEDGE_BASE = {
 # 2. STREAMLIT INTERFACE
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
+
+# Vstavljanje Google Analytics kode takoj za konfiguracijo strani
+components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
