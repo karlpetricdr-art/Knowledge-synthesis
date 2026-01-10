@@ -21,7 +21,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. POMOŽNE FUNKCIJE IN LOGO (Embedded SVG)
+# 0. POMOŽNE FUNKCIJE IN LOGO
 # =========================================================
 def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
@@ -54,23 +54,24 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-def search_google_scholar(query):
-    """Pridobi akademske podatke preko CrossRef API (znanstvena alternativa)."""
+def search_academic_papers(query):
+    """Pridobi znanstvene povzetke preko Semantic Scholar API-ja."""
     try:
-        url = f"https://api.crossref.org/works?query={query}&rows=3"
-        res = requests.get(url, timeout=5).json()
-        items = res.get('message', {}).get('items', [])
+        url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={query}&limit=3&fields=title,year,abstract"
+        res = requests.get(url, timeout=7).json()
+        papers = res.get('data', [])
         academic_str = ""
-        for item in items:
-            title = item.get('title', ['N/A'])[0]
-            year = item.get('created', {}).get('date-parts', [[0]])[0][0]
-            academic_str += f"- {title} ({year})\n"
-        return academic_str if academic_str else "No specific papers found."
-    except:
-        return "Academic database search failed."
+        for p in papers:
+            title = p.get('title', 'N/A')
+            year = p.get('year', 'N/A')
+            abstract = p.get('abstract', 'No abstract available.')
+            academic_str += f"Paper: {title} ({year})\nAbstract: {abstract[:300]}...\n\n"
+        return academic_str if academic_str else "No specific academic papers found."
+    except Exception:
+        return "Academic database connection error."
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (POLNA VERZIJA)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -195,12 +196,11 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Vstavljanje Google Analytics
+# Vstavljanje GA4
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
-# Naslov
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
@@ -215,9 +215,9 @@ with st.sidebar:
     
     st.divider()
     
-    # AKADEMSKO ISKANJE (Namesto Grokipedie)
-    st.subheader("🎓 Academic Enhancement")
-    enable_scholar = st.checkbox("Enable Google Scholar [CrossRef]", value=False)
+    # AKADEMSKA MOŽNOST
+    st.subheader("🎓 Knowledge Enhancement")
+    enable_scholar = st.checkbox("Enable Academic Search [Scholar]", value=False)
     
     st.divider()
 
@@ -279,11 +279,11 @@ st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=[list(KNOWLEDGE_BASE["profiles"].keys())[0]])
+    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
 with col2:
-    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=[list(KNOWLEDGE_BASE["paradigms"].keys())[0]])
+    selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 with col3:
@@ -293,25 +293,21 @@ with col3:
 
 st.divider()
 
-# Dinamična agregacija metod in orodij
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-agg_methods = sorted(list(set(agg_methods)))
-agg_tools = sorted(list(set(agg_tools)))
-
 col4, col5, col6 = st.columns(3)
 with col4:
     selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 with col5:
-    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
+    selected_methods = st.multiselect("6. Methodologies:", sorted(list(set(agg_methods))))
 with col6:
-    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
+    selected_tools = st.multiselect("7. Specific Tools:", sorted(list(set(agg_tools))))
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize the intersection of neurobiology and AI.")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -323,15 +319,14 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # Pridobivanje akademskih podatkov
-            academic_context = ""
+            # 1. PRIDOBIVANJE AKADEMSKIH PODATKOV
+            extra_academic_info = ""
             if enable_scholar:
-                with st.spinner('Searching academic databases...'):
-                    academic_context = search_google_scholar(user_query)
+                with st.spinner('Searching academic nodes for evidence...'):
+                    extra_academic_info = search_academic_papers(user_query)
             
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # Priprava prompta
             profiles_str = ", ".join(selected_profiles)
             paradigms_str = ", ".join(selected_paradigms)
             sciences_str = ", ".join(selected_sciences)
@@ -341,29 +336,25 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             tools_str = ", ".join(selected_tools) if selected_tools else "standard tools"
             
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
+            You are the SIS Universal Knowledge Synthesizer. Build a multidimensional 'Lego Logic' architecture.
             
-            ACADEMIC EVIDENCE (Google Scholar):
-            {academic_context if academic_context else "Use internal scientific knowledge."}
+            ACADEMIC CONTEXT (Incorporate this data):
+            {extra_academic_info if extra_academic_info else "No extra academic context found."}
 
-            USER ATTRIBUTES:
+            USER CONFIGURATION:
             - Profiles: {profiles_str}
-            - Expertise Level: {expertise}
+            - Expertise: {expertise}
             - Goal: {goal_context}
-            
-            DIMENSIONS:
             - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Mental Approaches: {approaches_str}
             - Sciences: {sciences_str}
-            - Methodologies: {methods_str}
-            - Tools: {tools_str}
             - Structural Models: {models_str}
 
             CONSTRUCTION RULES:
-            1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
-            2. Integrate Academic Evidence into the synthesis for higher credibility.
-            3. Plan: Structure the output strictly according to the selected Structural Models: {models_str}.
-            4. Tone: Adjust for a {expertise} level. 
+            1. Foundation: Use Paradigms as the base.
+            2. Evidence: Integrate findings from Academic Context into the synthesis.
+            3. Structure: Strictly follow the selected Models: {models_str}.
+            4. Level: Tone for {expertise}.
             5. Language: English.
             """
             
