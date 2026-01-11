@@ -56,7 +56,7 @@ SVG_3D_RELIEF = """
 """
 
 def fetch_author_bibliographies(author_input):
-    """Zajame bibliografske podatke o delih več avtorjev preko ORCID Public API v3.0."""
+    """Zajame bibliografske podatke in znanstvene koncepte preko ORCID, Semantic Scholar in OpenAlex API-jev."""
     if not author_input: return ""
     author_list = [a.strip() for a in author_input.split(",")]
     comprehensive_biblio = ""
@@ -64,11 +64,10 @@ def fetch_author_bibliographies(author_input):
     
     for auth in author_list:
         orcid_id = None
-        # 1. Preveri če je vnešen ORCID iD
+        # 1. Identifikacija ORCID iD
         if len(auth) == 19 and auth.count('-') == 3:
             orcid_id = auth
         else:
-            # 2. Poišči ORCID iD preko imena (Search API)
             try:
                 search_url = f"https://pub.orcid.org/v3.0/search/?q={auth}"
                 s_res = requests.get(search_url, headers=headers, timeout=8).json()
@@ -76,39 +75,46 @@ def fetch_author_bibliographies(author_input):
                     orcid_id = s_res['result'][0]['orcid-identifier']['path']
             except: pass
 
-        # 3. Če imamo ID, pridobi bibliografijo (Record API)
+        comprehensive_biblio += f"\n=== RESEARCH DOSSIER: {auth.upper()} ===\n"
+
+        # 2. OPENALEX API (Za koncepte in teme)
+        try:
+            oa_filter = f"orcid:https://orcid.org/{orcid_id}" if orcid_id else f"display_name.search:{auth}"
+            oa_url = f"https://api.openalex.org/authors?filter={oa_filter}"
+            oa_res = requests.get(oa_url, timeout=8).json()
+            if oa_res.get('results'):
+                author_oa = oa_res['results'][0]
+                topics = [t['display_name'] for t in author_oa.get('x_concepts', [])[:5]]
+                comprehensive_biblio += f"[OpenAlex Concepts]: {', '.join(topics)}\n"
+                comprehensive_biblio += f"[Scientific Impact]: H-index: {author_oa.get('summary_stats', {}).get('h_index', 'N/A')}\n"
+        except: pass
+
+        # 3. ORCID RECORD (Za uradno bibliografijo)
         if orcid_id:
             try:
                 record_url = f"https://pub.orcid.org/v3.0/{orcid_id}/record"
                 r_res = requests.get(record_url, headers=headers, timeout=8).json()
                 works = r_res.get('activities-summary', {}).get('works', {}).get('group', [])
-                comprehensive_biblio += f"\n--- ORCID BIBLIOGRAPHY: {auth.upper()} ({orcid_id}) ---\n"
-                if works:
-                    for work in works[:5]:
-                        summary = work.get('work-summary', [{}])[0]
-                        title = summary.get('title', {}).get('title', {}).get('value', 'N/A')
-                        year = summary.get('publication-date', {}).get('year', {}).get('value', 'n.d.')
-                        comprehensive_biblio += f"[{year}] {title}.\n"
-                else:
-                    comprehensive_biblio += "No public works found in ORCID record.\n"
-            except: 
-                comprehensive_biblio += f"Error accessing ORCID record for {auth}.\n"
-        else:
-            # 4. Fallback na Semantic Scholar za bibliografski zapis, če ORCID ne najde nič
-            try:
-                ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{auth}\"&limit=3&fields=title,year,venue"
-                ss_res = requests.get(ss_url, timeout=8).json()
-                papers = ss_res.get("data", [])
-                if papers:
-                    comprehensive_biblio += f"\n--- SCHOLAR BIBLIOGRAPHY: {auth.upper()} ---\n"
-                    for p in papers:
-                        comprehensive_biblio += f"[{p.get('year','n.d.')}] {p['title']}. In: {p.get('venue','Academic Repository')}.\n"
+                for work in works[:3]:
+                    summary = work.get('work-summary', [{}])[0]
+                    title = summary.get('title', {}).get('title', {}).get('value', 'N/A')
+                    year = summary.get('publication-date', {}).get('year', {}).get('value', 'n.d.')
+                    comprehensive_biblio += f"• [ORCID] ({year}) {title}\n"
             except: pass
+            
+        # 4. SEMANTIC SCHOLAR (Za vsebino abstractov)
+        try:
+            ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{auth}\"&limit=3&fields=title,year,abstract,venue"
+            ss_res = requests.get(ss_url, timeout=8).json()
+            papers = ss_res.get("data", [])
+            for p in papers:
+                comprehensive_biblio += f"• [Scholar] {p['title']} ({p.get('year','n.d.')}). Source: {p.get('venue','N/A')}. Abstract: {p.get('abstract','')[:200]}...\n"
+        except: pass
             
     return comprehensive_biblio
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (POPOLNA VERZIJA)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -125,7 +131,7 @@ KNOWLEDGE_BASE = {
         "Observers": {"drivers": "evolution", "description": "Detached analysts who monitor systems."}
     },
     "paradigms": {
-        "Empiricism": "Knowledge based on sensory experience and induction.",
+        "Empiricism": "Knowledge based on sensory experience and data-driven induction.",
         "Rationalism": "Knowledge based on deductive logic and innate intelletual principles.",
         "Constructivism": "Knowledge as a social and cognitive construction based on context.",
         "Positivism": "Strict adherence to observable and scientifically verifiable facts.",
@@ -136,7 +142,7 @@ KNOWLEDGE_BASE = {
         "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
         "Episodes & Sequences": "Organizing knowledge as a chronological flow.",
         "Facts & Characteristics": "Focusing on raw data and properties of objects.",
-        "Generalizations": "Moving from specific data points to broad frameworks.",
+        "Generalizations": "Moving from specific data points to broad universal conceptual frameworks.",
         "Glossary": "Precise definitions of terminology.",
         "Concepts": "Situational conceptual maps and abstract mental constructs."
     },
@@ -169,7 +175,7 @@ KNOWLEDGE_BASE = {
             "cat": "Social Sciences",
             "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
             "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Developmental Psychology"]
+            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
         },
         "Sociology": {
             "cat": "Social Sciences",
@@ -277,17 +283,17 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # =========================================================
-# 🛠️ CONFIGURE INTERFACE (4 VRSTICE)
+# 🛠️ CONFIGURE INTERFACE (RESTRUCTURED TO 4 ROWS)
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# VRSTICA 1: RESEARCH AUTHORS (SREDINA)
+# --- VRSTICA 1: RESEARCH AUTHORS (SREDINA) ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
-    target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, 0000-0002-1825-0097")
-    st.caption("Synchronizing interdisciplinary works from ORCID/Scholar for global synergy analysis.")
+    target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
+    st.caption("Active connectivity with ORCID, Scholar and OpenAlex for deep synergy analysis.")
 
-# VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL
+# --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
@@ -297,7 +303,7 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL
+# --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
@@ -306,7 +312,7 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
-# VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS
+# --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
@@ -324,7 +330,7 @@ with r4_c3:
     selected_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tools))))
 
 st.divider()
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize interdisciplinary synergy to solve...")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize interdisciplinary synergy based on research metadata...")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -336,10 +342,10 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV ZA VEČ AVTORJEV
+            # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV (ORCID + SCHOLAR + OPENALEX)
             synergy_biblio = ""
             if target_authors:
-                with st.spinner(f'Compiling research profiles for {target_authors}...'):
+                with st.spinner(f'Compiling research metadata from ORCID, Scholar and OpenAlex for {target_authors}...'):
                     synergy_biblio = fetch_author_bibliographies(target_authors)
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
@@ -347,13 +353,13 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
-            STRICT RESEARCH DATABASE (Incorporate these specific author findings):
-            {synergy_biblio if synergy_biblio else "No specific author metadata found. Use internal scientific training."}
+            STRICT RESEARCH CONTEXT (Active Metadata):
+            {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
 
             OBJECTIVE:
-            1. Analyze the interdisciplinary synergy between these specific authors' research: {target_authors}.
+            1. Analyze synergy between the specific research works and concepts of authors: {target_authors}.
             2. Synthesize a solution for: {user_query}.
-            3. Address how their combined theories increase efficiency for solving global problems.
+            3. Evaluate how their interdisciplinary theories and scientific concepts (from OpenAlex/Scholar) solve global problems efficiently.
 
             CONFIG:
             Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
@@ -371,11 +377,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 
                 # RAZŠIRITEV Z BIBLIOGRAFSKIMI ZAPISI
                 if synergy_biblio:
-                    with st.expander("📚 View Metadata Fetched from Research Databases"):
+                    with st.expander("📚 View Metadata Fetched from Research Databases (ORCID, Scholar, OpenAlex)"):
                         st.text(synergy_biblio)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.9.8 Active ORCID Bibliography Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.9.9 Active Multi-Source Research Edition | 2026")
