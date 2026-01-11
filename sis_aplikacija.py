@@ -54,50 +54,61 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-def fetch_active_orcid_record(author_input):
-    """Aktivna povezava z ORCID Public API v3.0 z iskanjem po imenu ali ID-ju."""
+def fetch_multi_author_synergy_data(author_input):
+    """Pridobi raziskovalne podatke za VEČ avtorjev preko ORCID in Semantic Scholar baze."""
     if not author_input: return ""
-    combined_data = ""
+    combined_context = ""
+    # Razdelimo vnos po vejicah (podpora za Boolean 'AND' logiko preko seznama)
     author_list = [a.strip() for a in author_input.split(",")]
     
     for author in author_list:
         orcid_id = None
-        # Če je vnešen neposreden ORCID ID
+        # 1. Preverimo format ORCID (XXXX-XXXX-XXXX-XXXX)
         if len(author) == 19 and author.count('-') == 3:
             orcid_id = author
         else:
-            # Iskanje ORCID ID-ja po imenu
+            # Iskanje ORCID ID po priimku/imenu
             try:
                 search_url = f"https://pub.orcid.org/v3.0/search/?q=family-name:{author}"
                 s_res = requests.get(search_url, headers={"Accept": "application/json"}, timeout=10).json()
                 if s_res.get('result'):
                     orcid_id = s_res['result'][0]['orcid-identifier']['path']
-            except: continue
+            except: pass
+        
+        # 2. Zajemi dela iz ORCID ali Fallback na Semantic Scholar
+        author_context = f"\n### RESEARCH DATA FOR: {author}\n"
+        found_works = False
         
         if orcid_id:
             try:
                 url = f"https://pub.orcid.org/v3.0/{orcid_id}/record"
                 res = requests.get(url, headers={"Accept": "application/json"}, timeout=10).json()
                 works = res.get('activities-summary', {}).get('works', {}).get('group', [])
-                combined_data += f"\n[ORCID FOUND: {orcid_id} for {author}]\n"
-                for work in works[:5]:
+                for work in works[:4]:
                     summary = work.get('work-summary', [{}])[0]
                     title = summary.get('title', {}).get('title', {}).get('value', 'Unknown Title')
-                    type_w = summary.get('type', 'N/A')
-                    combined_data += f"- Academic Work: {title} (Type: {type_w})\n"
-            except: continue
+                    author_context += f"- [ORCID Work]: {title}\n"
+                    found_works = True
+            except: pass
+            
+        # Če ORCID ne vrne dovolj podatkov, uporabi Semantic Scholar globinsko iskanje
+        try:
+            ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{author}\"&limit=5&fields=title,year,abstract"
+            ss_res = requests.get(ss_url, timeout=10).json()
+            for paper in ss_res.get("data", []):
+                author_context += f"- [Scholar Work]: {paper['title']} ({paper['year']}). Abstract: {paper['abstract'][:200]}...\n"
+                found_works = True
+        except: pass
+        
+        if found_works:
+            combined_context += author_context + "\n"
         else:
-            # Fallback na Semantic Scholar če ORCID ne vrne ničesar
-            try:
-                url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{author}\"&limit=5&fields=title,year,abstract"
-                res = requests.get(url, timeout=10).json()
-                for paper in res.get("data", []):
-                    combined_data += f"\n- Research Source: {paper['title']} ({paper['year']}). Abstract: {paper['abstract'][:200]}..."
-            except: continue
-    return combined_data
+            combined_context += f"\n- No specific data found for {author}, using general academic patterns.\n"
+            
+    return combined_context
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -108,31 +119,43 @@ KNOWLEDGE_BASE = {
         "Condensation", "Constant", "Associativity"
     ],
     "profiles": {
-        "Adventurers": {"drivers": "discovery", "description": "Explorers seeking hidden patterns."},
-        "Applicators": {"drivers": "utility", "description": "Pragmatic minds focused on efficiency."},
-        "Know-it-alls": {"drivers": "synthesis", "description": "Systemic thinkers seeking absolute clarity."},
-        "Observers": {"drivers": "evolution", "description": "Detached analysts who monitor systems."}
+        "Adventurers": {
+            "drivers": "cross-disciplinary exploration / discovery",
+            "description": "Explorers seeking to connect distant fields and find hidden patterns."
+        },
+        "Applicators": {
+            "drivers": "practical utility / real-world implementation",
+            "description": "Pragmatic minds focused on efficiency, usability, and solving concrete challenges."
+        },
+        "Know-it-alls": {
+            "drivers": "foundational unity / total synthesis",
+            "description": "Systemic thinkers seeking a unified theory of everything and absolute logical clarity."
+        },
+        "Observers": {
+            "drivers": "systemic evolution / pattern recognition",
+            "description": "Detached analysts who monitor how systems change over time."
+        }
     },
     "paradigms": {
         "Empiricism": "Knowledge based on sensory experience and data-driven induction.",
-        "Rationalism": "Knowledge based on deductive logic and innate intelletual principles.",
+        "Rationalism": "Knowledge based on deductive logic and innate intellectual principles.",
         "Constructivism": "Knowledge as a social and cognitive construction based on context.",
         "Positivism": "Strict adherence to observable and scientifically verifiable facts.",
         "Pragmatism": "Knowledge validated by its practical consequences and success."
     },
     "knowledge_models": {
-        "Causal Connections": "Analyzing the chain of causes, effects, and the 'why'.",
+        "Causal Connections": "Analyzing the chain of causes, effects, and the 'why' behind phenomena.",
         "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
-        "Episodes & Sequences": "Organizing knowledge as a chronological flow.",
-        "Facts & Characteristics": "Focusing on raw data and properties of objects.",
-        "Generalizations": "Moving from specific data points to broad universal conceptual frameworks.",
-        "Glossary": "Precise definitions of terminology.",
-        "Concepts": "Situational conceptual maps and abstract mental constructs."
+        "Episodes & Sequences": "Organizing knowledge as a chronological flow and narrative processes.",
+        "Facts & Characteristics": "Focusing on raw data and properties of living or inanimate objects.",
+        "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
+        "Glossary": "Precise definitions of terminology and subject-specific labels.",
+        "Concepts": "Situational conceptual maps, categories, and abstract mental constructs."
     },
     "subject_details": {
         "Physics": {
             "cat": "Natural Sciences",
-            "methods": ["Mathematical Modeling", "Experimental Method", "Simulation"],
+            "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"],
             "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
             "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
         },
@@ -186,9 +209,9 @@ KNOWLEDGE_BASE = {
         },
         "Library Science": {
             "cat": "Applied Sciences",
-            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometrics"],
-            "tools": ["OPAC Systems", "Metadata Schemas", "Digital Repositories"],
-            "facets": ["Information Retrieval", "Knowledge Organization"]
+            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
+            "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
+            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation"]
         },
         "Philosophy": {
             "cat": "Humanities",
@@ -198,7 +221,7 @@ KNOWLEDGE_BASE = {
         },
         "Linguistics": {
             "cat": "Humanities",
-            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetics"],
+            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
             "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
             "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
         }
@@ -213,13 +236,12 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 # Google Analytics integration
 components.html(ga_code, height=0)
 
-if 'expertise_val' not in st.session_state: 
-    st.session_state.expertise_val = "Intermediate"
+if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
-# --- SIDEBAR ---
+# --- SIDEBAR START ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     st.header("⚙️ Control Panel")
@@ -259,38 +281,38 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # =========================================================
-# 🛠️ CONFIGURE INTERFACE (RESTRUCTURED TO 4 ROWS)
+# 🛠️ CONFIGURE INTERFACE (ESTETSKA RAZPOREDITEV)
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
 # --- VRSTICA 1: RESEARCH AUTHORS (SREDINA) ---
-r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
-with r1_c2:
-    target_authors = st.text_input("👤 Research Authors (Name or ORCID ID):", placeholder="e.g. Karl Petrič, 0000-0002-1825-0097")
-    st.caption("Establishing live links between author records and interdisciplinary synthesis logic.")
+r1_col1, r1_col2, r1_col3 = st.columns([1, 2, 1])
+with r1_col2:
+    target_authors = st.text_input("👤 Research Authors (Multiple, comma separated):", placeholder="Karl Petrič, Samo Kralj, 0000-0002-1825-0097")
+    st.caption("Active connectivity with ORCID/Scholar. Enter multiple authors for synergy analysis.")
 
 # --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
-r2_c1, r2_c2, r2_c3 = st.columns(3)
-with r2_c1:
+r2_col1, r2_col2, r2_col3 = st.columns(3)
+with r2_col1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
-with r2_c2:
+with r2_col2:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
     selected_sciences = st.multiselect("2. Science Fields:", sciences_list, default=[sciences_list[0]])
-with r2_c3:
+with r2_col3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
 # --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
-r3_c1, r3_c2, r3_c3 = st.columns(3)
-with r3_c1:
+r3_col1, r3_col2, r3_col3 = st.columns(3)
+with r3_col1:
     selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
-with r3_c2:
+with r3_col2:
     selected_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
-with r3_c3:
+with r3_col3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
 # --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
-r4_c1, r4_c2, r4_c3 = st.columns(3)
-with r4_c1:
+r4_col1, r4_col2, r4_col3 = st.columns(3)
+with r4_col1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 
 # Agregacija metod in orodij
@@ -300,13 +322,13 @@ for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-with r4_c2:
+with r4_col2:
     selected_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_methods))))
-with r4_c3:
+with r4_col3:
     selected_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tools))))
 
 st.divider()
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize an interdisciplinary solution for...")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize an interdisciplinary perspective based on these authors' works...")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -318,11 +340,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # AKTIVNA POVEZAVA Z RAZISKOVALNIMI BAZAMI
-            academic_context = ""
+            # AKTIVNA SINERGIJA VEČ AVTORJEV
+            research_synergy_context = ""
             if target_authors:
-                with st.spinner(f'Accessing ORCID/Scholar data for {target_authors}...'):
-                    academic_context = fetch_active_orcid_record(target_authors)
+                with st.spinner(f'Analyzing academic synergy for {target_authors}...'):
+                    research_synergy_context = fetch_multi_author_synergy_data(target_authors)
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
@@ -330,22 +352,23 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
             [STRICT_SYNERGY_RULE]: 
-            You MUST prioritize the provided RESEARCH DATA below over your general training. 
-            Synthesize the specific findings of the mentioned authors.
+            Analyze the INTERDISCIPLINARY COLLABORATION potential between the authors listed below. 
+            Identify how their specific research findings (from metadata) solve global problems more efficiently when combined.
 
-            RESEARCH DATA (Live from ORCID/Scholar):
-            {academic_context if academic_context else "No specific metadata found. Use internal knowledge."}
+            RESEARCH CONTEXT (Live from ORCID/Scholar):
+            {research_synergy_context if research_synergy_context else "No specific metadata found. Use internal training."}
 
             OBJECTIVE:
-            Synthesize the synergy between: {target_authors} to solve: {user_query}.
-            Analyze how their interdisciplinary works (from the data above) increase efficiency for global problems.
-
-            CONFIG:
+            1. Synthesize synergy between these specific authors: {target_authors}.
+            2. Apply this to solve: {user_query}.
+            3. Address 'Collaboration Efficiency' in global problem solving.
+            
+            DIMENSIONS:
             Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
             Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
             """
             
-            with st.spinner('Synthesizing research synergy...'):
+            with st.spinner('Synthesizing multidimensional research synergy...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
@@ -354,12 +377,12 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
-                if academic_context:
-                    with st.expander("📚 View Fetched Research Metadata"):
-                        st.text(academic_context)
+                if research_synergy_context:
+                    with st.expander("📚 View Fetched Synergy Metadata"):
+                        st.text(research_synergy_context)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.9.2 Active Research Bridge | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.9.3 Multi-Author Synergy Edition | 2026")
