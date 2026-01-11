@@ -249,14 +249,20 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
+    # --- POVEZAVE GUMBI ---
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
-    st.link_button("🎓 Google Scholar", "https://scholar.google.com/", use_container_width=True)
+    st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
+    st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # --- MAIN SELECTION INTERFACE ---
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
+    # --- DODANA DIMENZIJA AVTORJA ---
+    target_authors = st.text_input("👤 0. Research Authors (Scholar / ORCID):", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
+    st.caption("Input specific authors to analyze their academic synergy and synthesis efficiency.")
+    
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 with col2:
@@ -312,6 +318,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
             
+            AUTHOR DIMENSION (Academic synergy analysis):
+            - Target Authors: {target_authors if target_authors else "General Knowledge"}
+            - Task: Analyze the likely academic output and theoretical synergy of the specified authors (contextualized via Google Scholar/ORCID profiles). 
+            - Objective: Determine how the collaboration or integration of their work increases the efficiency, credibility, and multidimensional depth of the knowledge synthesis.
+
             USER ATTRIBUTES:
             - Profiles: {profiles_str}
             - Expertise Level: {expertise}
@@ -319,7 +330,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             DIMENSIONS:
             - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str} (Apply all these cognitive lenses simultaneously)
+            - Mental Approaches: {approaches_str}
             - Sciences: {sciences_str}
             - Methodologies: {methods_str}
             - Tools: {tools_str}
@@ -327,15 +338,13 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             CONSTRUCTION RULES:
             1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
-            2. Cognitive Lens: Apply the combination of '{approaches_str}' as the primary filter for processing information.
-            3. Bricks: Use the selected Sciences ({sciences_str}), their methods, and tools as components.
-            4. Plan: Structure the output strictly according to the combined requirements of the selected Structural Models: {models_str}.
-            5. Integration: Ensure a high-level synthesis (cross-pollination) between all chosen dimensions.
-            6. Tone: Adjust for a {expertise} level. 
-            7. Language: English.
+            2. Author Synergy: If specific authors are provided, treat their combined work as a mandatory multidimensional layer. Synthesize their known theories with the selected science fields.
+            3. Efficiency: Specifically comment on how the integration of these specific authors enhances the 'Efficiency' of the resulting knowledge architecture.
+            4. Structure: Organize the output strictly according to the selected Structural Models: {models_str}.
+            5. Language: English.
             """
             
-            with st.spinner('Synthesizing complex knowledge structure...'):
+            with st.spinner('Synthesizing complex knowledge structure and author synergy...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
@@ -349,4 +358,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.4 Clean Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.6 Author-Synergy Edition | 2026")
