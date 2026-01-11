@@ -1,6 +1,6 @@
 streamlit
 openai
 requests
-streamlit-cytoscape
+
 
 
