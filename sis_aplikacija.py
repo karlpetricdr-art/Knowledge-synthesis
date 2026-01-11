@@ -21,7 +21,7 @@ ga_code = f"""
 """
 
 # =========================================================
-# 0. POMOŽNE FUNKCIJE IN LOGO (Embedded SVG)
+# 0. POMOŽNE FUNKCIJE IN LOGO
 # =========================================================
 def get_svg_base64(svg_str):
     return base64.b64encode(svg_str.encode('utf-8')).decode('utf-8')
@@ -54,8 +54,32 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
+def fetch_author_data(author_names):
+    """Pridobi podatke o delih avtorjev preko Semantic Scholar API-ja."""
+    if not author_names:
+        return ""
+    
+    academic_context = ""
+    authors_list = [a.strip() for a in author_names.split(",")]
+    
+    for author in authors_list:
+        try:
+            # Iskanje del avtorja (Scholar/ORCID baze)
+            url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{author}\"&limit=5&fields=title,year,abstract,authors"
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json().get("data", [])
+                for paper in data:
+                    title = paper.get("title", "N/A")
+                    year = paper.get("year", "N/A")
+                    abstract = paper.get("abstract", "No abstract available.")
+                    academic_context += f"\n- Paper: {title} ({year}) by {author}. Abstract: {abstract[:300]}..."
+        except Exception:
+            continue
+    return academic_context
+
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -66,22 +90,10 @@ KNOWLEDGE_BASE = {
         "Condensation", "Constant", "Associativity"
     ],
     "profiles": {
-        "Adventurers": {
-            "drivers": "cross-disciplinary exploration / discovery",
-            "description": "Explorers seeking to connect distant fields and find hidden patterns."
-        },
-        "Applicators": {
-            "drivers": "practical utility / real-world implementation",
-            "description": "Pragmatic minds focused on efficiency, usability, and solving concrete challenges."
-        },
-        "Know-it-alls": {
-            "drivers": "foundational unity / total synthesis",
-            "description": "Systemic thinkers seeking a unified theory of everything and absolute logical clarity."
-        },
-        "Observers": {
-            "drivers": "systemic evolution / pattern recognition",
-            "description": "Detached analysts who monitor how systems change over time."
-        }
+        "Adventurers": {"drivers": "discovery", "description": "Explorers seeking hidden patterns."},
+        "Applicators": {"drivers": "utility", "description": "Pragmatic minds focused on efficiency."},
+        "Know-it-alls": {"drivers": "synthesis", "description": "Systemic thinkers seeking absolute clarity."},
+        "Observers": {"drivers": "evolution", "description": "Detached analysts of systemic change."}
     },
     "paradigms": {
         "Empiricism": "Knowledge based on sensory experience and data-driven induction.",
@@ -96,82 +108,22 @@ KNOWLEDGE_BASE = {
         "Episodes & Sequences": "Organizing knowledge as a chronological flow and narrative processes.",
         "Facts & Characteristics": "Focusing on raw data and properties of living or inanimate objects.",
         "Generalizations": "Moving from specific data points to broad, universal conceptual frameworks.",
-        "Glossary": "Precise definitions of terminology and subject-specific labels.",
-        "Concepts": "Situational conceptual maps, categories, and abstract mental constructs."
+        "Glossary": "Precise definitions.",
+        "Concepts": "Abstract mental constructs."
     },
     "subject_details": {
-        "Physics": {
-            "cat": "Natural Sciences",
-            "methods": ["Mathematical Modeling", "Experimental Method", "Computational Simulation"],
-            "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
-            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
-        },
-        "Chemistry": {
-            "cat": "Natural Sciences",
-            "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"],
-            "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"],
-            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry"]
-        },
-        "Biology": {
-            "cat": "Natural Sciences",
-            "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"],
-            "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
-            "facets": ["Genetics", "Cell Biology", "Ecology"]
-        },
-        "Neuroscience": {
-            "cat": "Natural Sciences",
-            "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"],
-            "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"],
-            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping"]
-        },
-        "Psychology": {
-            "cat": "Social Sciences",
-            "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
-            "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
-        },
-        "Sociology": {
-            "cat": "Social Sciences",
-            "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"],
-            "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"],
-            "facets": ["Social Stratification", "Group Dynamics", "Urbanization"]
-        },
-        "Computer Science": {
-            "cat": "Formal Sciences",
-            "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
-            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
-        },
-        "Medicine": {
-            "cat": "Applied Sciences",
-            "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"],
-            "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"],
-            "facets": ["Pathology", "Immunology", "Pharmacology"]
-        },
-        "Engineering": {
-            "cat": "Applied Sciences",
-            "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
-            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
-        },
-        "Library Science": {
-            "cat": "Applied Sciences",
-            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
-            "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
-            "facets": ["Information Retrieval", "Knowledge Organization", "Digital Preservation"]
-        },
-        "Philosophy": {
-            "cat": "Humanities",
-            "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
-            "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
-            "facets": ["Ethics", "Metaphysics", "Epistemology"]
-        },
-        "Linguistics": {
-            "cat": "Humanities",
-            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
-            "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
-            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
-        }
+        "Physics": {"cat": "Natural Sciences", "methods": ["Mathematical Modeling", "Simulation"], "tools": ["Particle Accelerator", "Spectrometer"]},
+        "Chemistry": {"cat": "Natural Sciences", "methods": ["Chemical Synthesis", "Spectroscopy"], "tools": ["Mass Spectrometer", "NMR"]},
+        "Biology": {"cat": "Natural Sciences", "methods": ["CRISPR Editing", "DNA Sequencing"], "tools": ["Gene Sequencer", "Microscope"]},
+        "Neuroscience": {"cat": "Natural Sciences", "methods": ["Neuroimaging"], "tools": ["fMRI Scanner", "EEG"]},
+        "Psychology": {"cat": "Social Sciences", "methods": ["Double-Blind Trials"], "tools": ["fMRI Scanner", "Standardized Testing"]},
+        "Sociology": {"cat": "Social Sciences", "methods": ["Ethnography", "Statistics"], "tools": ["Data Analytics Software"]},
+        "Computer Science": {"cat": "Formal Sciences", "methods": ["Algorithm Design"], "tools": ["IDE", "GPU Clusters"]},
+        "Medicine": {"cat": "Applied Sciences", "methods": ["Clinical Trials"], "tools": ["MRI/CT Scanners"]},
+        "Engineering": {"cat": "Applied Sciences", "methods": ["Prototyping"], "tools": ["3D Printers", "CAD Software"]},
+        "Library Science": {"cat": "Applied Sciences", "methods": ["Taxonomy"], "tools": ["OPAC Systems", "Digital Repositories"]},
+        "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method"], "tools": ["Library Archives"]},
+        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis"], "tools": ["Praat", "NLTK"]}
     }
 }
 
@@ -179,8 +131,6 @@ KNOWLEDGE_BASE = {
 # 2. STREAMLIT INTERFACE
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
-
-# Google Analytics integration
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
@@ -191,22 +141,14 @@ st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Arc
 # --- SIDEBAR START ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
-    
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     if not api_key and "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
-
     with st.popover("📖 Lego Building Guide", use_container_width=True):
-        st.markdown("""
-        ### Synthesis Process:
-        1. **Foundation:** Choose your **Paradigms**.
-        2. **Bricks:** Select **Sciences**, **Methods**, and **Tools**.
-        3. **Building Plan:** Select the **Structural Models**.
-        4. **Target View:** Match with your **Profiles**.
-        """)
+        st.markdown("### Process: 1. Paradigms, 2. Sciences, 3. Models, 4. Profiles.")
 
     st.subheader("🚀 Quick Templates")
     col_t1, col_t2 = st.columns(2)
@@ -220,36 +162,19 @@ with st.sidebar:
             st.rerun()
 
     st.divider()
-
     st.subheader("📚 Knowledge Explorer")
     with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items():
-            st.write(f"**{p}**: {d['description']}")
-
+        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['description']}")
     with st.expander("🧠 Mental Approaches"):
-        for approach in KNOWLEDGE_BASE["mental_approaches"]:
-            st.write(f"• {approach}")
-
-    with st.expander("🌍 Scientific Paradigms"):
-        for p, d in KNOWLEDGE_BASE["paradigms"].items():
-            st.write(f"**{p}**: {d}")
-
-    with st.expander("🔬 Science Fields"):
-        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
-            d = KNOWLEDGE_BASE["subject_details"][s]
-            st.write(f"• **{s}** ({d['cat']})")
-
+        for a in KNOWLEDGE_BASE["mental_approaches"]: st.write(f"• {a}")
     with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-            st.write(f"**{m}**: {d}")
+        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-
     if st.button("♻️ Reset Session", use_container_width=True):
         st.session_state.clear()
         st.rerun()
     
-    # --- POVEZAVE GUMBI ---
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
@@ -259,15 +184,17 @@ st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    # --- DODANA DIMENZIJA AVTORJA ---
-    target_authors = st.text_input("👤 0. Research Authors (Scholar / ORCID):", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
-    st.caption("Input specific authors to analyze their academic synergy and synthesis efficiency.")
-    
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
     expertise = st.select_slider("Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
+
 with col2:
+    # --- PRESTAVLJENA DIMENZIJA AVTORJA (SREDINA) ---
+    target_authors = st.text_input("👤 0. Research Authors (Scholar / ORCID):", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
+    st.caption("Linking Authors' works to interdisciplinary global problem-solving.")
+    
     selected_paradigms = st.multiselect("2. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
     goal_context = st.selectbox("Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
+
 with col3:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
     selected_sciences = st.multiselect("3. Science Fields:", sciences_list, default=[sciences_list[0]])
@@ -275,25 +202,21 @@ with col3:
 
 st.divider()
 
-# Aggregation logic for methods and tools
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
     agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
     agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-agg_methods = sorted(list(set(agg_methods)))
-agg_tools = sorted(list(set(agg_tools)))
-
 col4, col5, col6 = st.columns(3)
 with col4:
     selected_approaches = st.multiselect("5. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 with col5:
-    selected_methods = st.multiselect("6. Methodologies:", agg_methods)
+    selected_methods = st.multiselect("6. Methodologies:", sorted(list(set(agg_methods))))
 with col6:
-    selected_tools = st.multiselect("7. Specific Tools:", agg_tools)
+    selected_tools = st.multiselect("7. Specific Tools:", sorted(list(set(agg_tools))))
 
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on AI ethics.")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="e.g. Synthesize a perspective on global AI ethics.")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI)
@@ -305,52 +228,39 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
+            # PRIDOBIVANJE DEJANJSKIH PODATKOV O AVTORJIH
+            academic_evidence = ""
+            if target_authors:
+                with st.spinner(f'Fetching actual research data for {target_authors}...'):
+                    academic_evidence = fetch_author_data(target_authors)
+
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            profiles_str = ", ".join(selected_profiles)
-            paradigms_str = ", ".join(selected_paradigms)
-            sciences_str = ", ".join(selected_sciences)
-            models_str = ", ".join(selected_models)
-            approaches_str = ", ".join(selected_approaches)
-            methods_str = ", ".join(selected_methods) if selected_methods else "general methods"
-            tools_str = ", ".join(selected_tools) if selected_tools else "standard tools"
-            
             system_prompt = f"""
-            You are the SIS Universal Knowledge Synthesizer. You construct knowledge architectures using 'Lego Logic'.
+            You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
-            AUTHOR DIMENSION (Academic synergy analysis):
-            - Target Authors: {target_authors if target_authors else "General Knowledge"}
-            - Task: Analyze the likely academic output and theoretical synergy of the specified authors (contextualized via Google Scholar/ORCID profiles). 
-            - Objective: Determine how the collaboration or integration of their work increases the efficiency, credibility, and multidimensional depth of the knowledge synthesis.
+            RESEARCH BASE (Author-specific evidence):
+            {academic_evidence if academic_evidence else "General Knowledge base."}
 
-            USER ATTRIBUTES:
-            - Profiles: {profiles_str}
-            - Expertise Level: {expertise}
-            - Goal: {goal_context}
-            
+            OBJECTIVE:
+            Use the provided Research Base of authors ({target_authors}) to solve: {user_query}.
+            Analyze the synergy between these authors' interdisciplinary works for global problem solving.
+
             DIMENSIONS:
-            - Paradigms: {paradigms_str}
-            - Mental Approaches: {approaches_str}
-            - Sciences: {sciences_str}
-            - Methodologies: {methods_str}
-            - Tools: {tools_str}
-            - Structural Models: {models_str}
-
-            CONSTRUCTION RULES:
-            1. Foundation: Use the selected Paradigms ({paradigms_str}) as the logic base.
-            2. Author Synergy: If specific authors are provided, treat their combined work as a mandatory multidimensional layer. Synthesize their known theories with the selected science fields.
-            3. Efficiency: Specifically comment on how the integration of these specific authors enhances the 'Efficiency' of the resulting knowledge architecture.
-            4. Structure: Organize the output strictly according to the selected Structural Models: {models_str}.
-            5. Language: English.
+            - Profiles: {", ".join(selected_profiles)}
+            - Paradigms: {", ".join(selected_paradigms)}
+            - Sciences: {", ".join(selected_sciences)}
+            - Models: {", ".join(selected_models)}
+            - Approaches: {", ".join(selected_approaches)}
+            - Tone: {expertise}
             """
             
-            with st.spinner('Synthesizing complex knowledge structure and author synergy...'):
+            with st.spinner('Synthesizing research synergy...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
-                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
                 
@@ -358,4 +268,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.6 Author-Synergy Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v4.7 Global Research Edition | 2026")
