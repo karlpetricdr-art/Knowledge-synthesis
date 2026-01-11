@@ -55,8 +55,44 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
+# --- CYTOSCAPE VIZUALIZACIJA ---
+def render_cytoscape_network(elements):
+    """Izriše barvito interaktivno omrežje Cytoscape.js."""
+    cyto_html = f"""
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <div id="cy" style="width: 100%; height: 500px; background: #ffffff; border-radius: 15px; border: 1px solid #eee;"></div>
+    <script>
+        var cy = cytoscape({{
+            container: document.getElementById('cy'),
+            elements: {json.dumps(elements)},
+            style: [
+                {{ selector: 'node', style: {{ 
+                    'label': 'data(label)', 
+                    'text-valign': 'center', 
+                    'color': '#333', 
+                    'background-color': 'data(color)',
+                    'width': 50, 'height': 50,
+                    'font-size': '12px',
+                    'font-weight': 'bold',
+                    'text-outline-width': 2,
+                    'text-outline-color': '#fff'
+                }} }},
+                {{ selector: 'edge', style: {{ 
+                    'width': 3, 
+                    'line-color': '#ddd', 
+                    'target-arrow-color': '#ddd', 
+                    'target-arrow-shape': 'triangle', 
+                    'curve-style': 'bezier' 
+                }} }}
+            ],
+            layout: {{ name: 'cose', padding: 40, animate: true }}
+        }});
+    </script>
+    """
+    components.html(cyto_html, height=520)
+
 def fetch_author_bibliographies(author_input):
-    """Zajame bibliografske podatke o delih več avtorjev preko ORCID Public API v3.0."""
+    """Zajame bibliografske podatke o delih več avtorjev preko ORCID Public API v3.0 in Scholar Proxy."""
     if not author_input: return ""
     author_list = [a.strip() for a in author_input.split(",")]
     comprehensive_biblio = ""
@@ -64,11 +100,9 @@ def fetch_author_bibliographies(author_input):
     
     for auth in author_list:
         orcid_id = None
-        # 1. Preveri če je vnešen ORCID iD
         if len(auth) == 19 and auth.count('-') == 3:
             orcid_id = auth
         else:
-            # 2. Poišči ORCID iD preko imena (Search API)
             try:
                 search_url = f"https://pub.orcid.org/v3.0/search/?q={auth}"
                 s_res = requests.get(search_url, headers=headers, timeout=8).json()
@@ -76,7 +110,6 @@ def fetch_author_bibliographies(author_input):
                     orcid_id = s_res['result'][0]['orcid-identifier']['path']
             except: pass
 
-        # 3. Če imamo ID, pridobi bibliografijo (Record API)
         if orcid_id:
             try:
                 record_url = f"https://pub.orcid.org/v3.0/{orcid_id}/record"
@@ -89,12 +122,9 @@ def fetch_author_bibliographies(author_input):
                         title = summary.get('title', {}).get('title', {}).get('value', 'N/A')
                         year = summary.get('publication-date', {}).get('year', {}).get('value', 'n.d.')
                         comprehensive_biblio += f"[{year}] {title}.\n"
-                else:
-                    comprehensive_biblio += "No public works found in ORCID record.\n"
-            except: 
-                comprehensive_biblio += f"Error accessing ORCID record for {auth}.\n"
+                else: comprehensive_biblio += "No public works found in ORCID record.\n"
+            except: comprehensive_biblio += f"Error accessing ORCID record for {auth}.\n"
         else:
-            # 4. Fallback na Semantic Scholar za bibliografski zapis, če ORCID ne najde nič
             try:
                 ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{auth}\"&limit=3&fields=title,year,venue"
                 ss_res = requests.get(ss_url, timeout=8).json()
@@ -108,7 +138,7 @@ def fetch_author_bibliographies(author_input):
     return comprehensive_biblio
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -126,19 +156,19 @@ KNOWLEDGE_BASE = {
     },
     "paradigms": {
         "Empiricism": "Knowledge based on sensory experience and induction.",
-        "Rationalism": "Knowledge based on deductive logic and innate intelletual principles.",
-        "Constructivism": "Knowledge as a social and cognitive construction based on context.",
-        "Positivism": "Strict adherence to observable and scientifically verifiable facts.",
-        "Pragmatism": "Knowledge validated by its practical consequences and success."
+        "Rationalism": "Knowledge based on deductive logic and innate principles.",
+        "Constructivism": "Knowledge as a social construction.",
+        "Positivism": "Strict adherence to scientific facts.",
+        "Pragmatism": "Knowledge validated by practical success."
     },
     "knowledge_models": {
-        "Causal Connections": "Analyzing the chain of causes, effects, and the 'why'.",
-        "Principles & Relations": "Focusing on constant laws and fundamental correlations.",
+        "Causal Connections": "Analyzing causes, effects, and the 'why'.",
+        "Principles & Relations": "Constant laws and fundamental correlations.",
         "Episodes & Sequences": "Organizing knowledge as a chronological flow.",
-        "Facts & Characteristics": "Focusing on raw data and properties of objects.",
-        "Generalizations": "Moving from specific data points to broad frameworks.",
+        "Facts & Characteristics": "Raw data and properties of objects.",
+        "Generalizations": "Broad, universal conceptual frameworks.",
         "Glossary": "Precise definitions of terminology.",
-        "Concepts": "Situational conceptual maps and abstract mental constructs."
+        "Concepts": "Abstract mental constructs and situational maps."
     },
     "subject_details": {
         "Physics": {
@@ -169,7 +199,7 @@ KNOWLEDGE_BASE = {
             "cat": "Social Sciences",
             "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
             "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Developmental Psychology"]
+            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
         },
         "Sociology": {
             "cat": "Social Sciences",
@@ -198,7 +228,7 @@ KNOWLEDGE_BASE = {
         "Library Science": {
             "cat": "Applied Sciences",
             "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
-            "tools": ["OPAC Systems", "Metadata Schemas (Dublin Core)", "Digital Repositories"],
+            "tools": ["OPAC Systems", "Metadata Schemas", "Digital Repositories"],
             "facets": ["Information Retrieval", "Knowledge Organization"]
         },
         "Philosophy": {
@@ -209,9 +239,9 @@ KNOWLEDGE_BASE = {
         },
         "Linguistics": {
             "cat": "Humanities",
-            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetics"],
+            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
             "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
-            "facets": ["Syntax & Morphology", "Sociolinguistics"]
+            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
         }
     }
 }
@@ -221,7 +251,7 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Google Analytics integration
+# Google Analytics
 components.html(ga_code, height=0)
 
 if 'expertise_val' not in st.session_state: 
@@ -248,24 +278,17 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    # KNOWLEDGE EXPLORER - VSIH 5 EXPANDERJEV
     st.subheader("📚 Knowledge Explorer")
     with st.expander("👤 User Profiles"):
-        for p, d in KNOWLEDGE_BASE["profiles"].items():
-            st.write(f"**{p}**: {d['description']}")
+        for p, d in KNOWLEDGE_BASE["profiles"].items(): st.write(f"**{p}**: {d['description']}")
     with st.expander("🧠 Mental Approaches"):
-        for approach in KNOWLEDGE_BASE["mental_approaches"]:
-            st.write(f"• {approach}")
+        for a in KNOWLEDGE_BASE["mental_approaches"]: st.write(f"• {a}")
     with st.expander("🌍 Scientific Paradigms"):
-        for p, d in KNOWLEDGE_BASE["paradigms"].items():
-            st.write(f"**{p}**: {d}")
+        for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
     with st.expander("🔬 Science Fields"):
-        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()):
-            d = KNOWLEDGE_BASE["subject_details"][s]
-            st.write(f"• **{s}** ({d['cat']})")
+        for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()): st.write(f"• **{s}**")
     with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items():
-            st.write(f"**{m}**: {d}")
+        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
     if st.button("♻️ Reset Session", use_container_width=True):
@@ -277,17 +300,17 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # =========================================================
-# 🛠️ CONFIGURE INTERFACE (4 VRSTICE)
+# 🛠️ CONFIGURE INTERFACE (RESTRUCTURED TO 4 ROWS)
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# VRSTICA 1: RESEARCH AUTHORS (SREDINA)
+# --- VRSTICA 1: RESEARCH AUTHORS (SREDINA) ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
-    target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, 0000-0002-1825-0097")
-    st.caption("Synchronizing interdisciplinary works from ORCID/Scholar for global synergy analysis.")
+    target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
+    st.caption("Active connectivity for real-time bibliographic synergy analysis.")
 
-# VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL
+# --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
@@ -297,7 +320,7 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL
+# --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
@@ -306,7 +329,7 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
-# VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS
+# --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
@@ -327,7 +350,7 @@ st.divider()
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize interdisciplinary synergy to solve...")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI)
+# 3. CORE SYNTHESIS LOGIC (Groq AI + Cytoscape)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
@@ -336,10 +359,10 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV ZA VEČ AVTORJEV
+            # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV
             synergy_biblio = ""
             if target_authors:
-                with st.spinner(f'Compiling research profiles for {target_authors}...'):
+                with st.spinner(f'Compiling research synergy for {target_authors}...'):
                     synergy_biblio = fetch_author_bibliographies(target_authors)
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
@@ -347,13 +370,13 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
-            STRICT RESEARCH DATABASE (Incorporate these specific author findings):
-            {synergy_biblio if synergy_biblio else "No specific author metadata found. Use internal scientific training."}
+            STRICT RESEARCH CONTEXT (Active Metadata):
+            {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
 
             OBJECTIVE:
-            1. Analyze the interdisciplinary synergy between these specific authors' research: {target_authors}.
+            1. Analyze synergy between the specific research works of {target_authors}.
             2. Synthesize a solution for: {user_query}.
-            3. Address how their combined theories increase efficiency for solving global problems.
+            3. Address 'Collaboration Efficiency' in global problem solving.
 
             CONFIG:
             Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
@@ -368,6 +391,29 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 )
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
+
+                # --- CYTOSCAPE VIZUALIZACIJA OMREŽJA ---
+                st.subheader("🕸️ Multi-Dimensional Synergy Network")
+                nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
+                edges = []
+
+                # Poveži avtorje
+                for auth in (target_authors.split(",") if target_authors else []):
+                    a_name = auth.strip()
+                    nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
+                    edges.append({"data": {"source": "query", "target": a_name}})
+
+                # Poveži znanstvene vede
+                for sci in selected_sciences:
+                    nodes.append({"data": {"id": sci, "label": sci, "color": "#2a9d8f"}})
+                    edges.append({"data": {"source": "query", "target": sci}})
+
+                # Poveži modele
+                for model in selected_models:
+                    nodes.append({"data": {"id": model, "label": model, "color": "#f4a261"}})
+                    edges.append({"data": {"source": "query", "target": model}})
+
+                render_cytoscape_network(nodes + edges)
                 
                 # RAZŠIRITEV Z BIBLIOGRAFSKIMI ZAPISI
                 if synergy_biblio:
@@ -378,4 +424,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v4.9.8 Active ORCID Bibliography Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.0 Active ORCID Bibliography & Cytoscape Edition | 2026")
