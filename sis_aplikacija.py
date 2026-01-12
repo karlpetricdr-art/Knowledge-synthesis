@@ -109,19 +109,18 @@ def fetch_author_bibliographies(author_input):
                     for work in works[:5]:
                         summary = work.get('work-summary', [{}])[0]
                         title = summary.get('title', {}).get('title', {}).get('value', 'N/A')
-                        year = summary.get('publication-date', {}).get('year', {}).get('value', 'n.d.')
-                        comprehensive_biblio += f"[{year}] {title}.\n"
-                else: comprehensive_biblio += "No public works found in ORCID record.\n"
-            except: comprehensive_biblio += f"Error accessing ORCID record for {auth}.\n"
+                        comprehensive_biblio += f"- {title}\n"
+                else: comprehensive_biblio += "No public works found.\n"
+            except: pass
         else:
             try:
-                ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{auth}\"&limit=3&fields=title,year,venue"
+                ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query=author:\"{auth}\"&limit=3&fields=title,year"
                 ss_res = requests.get(ss_url, timeout=8).json()
                 papers = ss_res.get("data", [])
                 if papers:
                     comprehensive_biblio += f"\n--- SCHOLAR BIBLIOGRAPHY: {auth.upper()} ---\n"
                     for p in papers:
-                        comprehensive_biblio += f"[{p.get('year','n.d.')}] {p['title']}. In: {p.get('venue','Academic Repository')}.\n"
+                        comprehensive_biblio += f"- {p['title']} ({p.get('year','n.d.')})\n"
             except: pass
             
     return comprehensive_biblio
@@ -301,6 +300,8 @@ with st.sidebar:
         for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
     with st.expander("🔬 Science Fields"):
         for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()): st.write(f"• **{s}**")
+    with st.expander("🏗️ Structural Models"):
+        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
     if st.button("♻️ Reset Session", use_container_width=True):
@@ -309,19 +310,20 @@ with st.sidebar:
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
+    st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
 # =========================================================
 # 🛠️ CONFIGURE INTERFACE (FULL 4 ROWS)
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# --- VRSTICA 1: RESEARCH AUTHORS ---
+# --- ROW 1: RESEARCH AUTHORS ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active connectivity for real-time bibliographic synergy analysis via ORCID.")
 
-# --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
+# --- ROW 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
@@ -331,7 +333,7 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
+# --- ROW 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
@@ -340,7 +342,7 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
-# --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
+# --- ROW 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
@@ -358,7 +360,7 @@ with r4_c3:
     selected_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tools))))
 
 st.divider()
-user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize interdisciplinary synergy to solve...")
+user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Provide a deep interdisciplinary inquiry...")
 
 # =========================================================
 # 3. CORE SYNTHESIS LOGIC (Groq AI + Dual Cytoscape)
@@ -378,33 +380,38 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # 2. CONSTRUCT SYSTEM PROMPT (INCLUDING LLMGraphTransformer Instructions)
+            # 2. CONSTRUCT SYSTEM PROMPT (Optimized for comprehensiveness)
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
             STRICT RESEARCH CONTEXT:
             {synergy_biblio if synergy_biblio else "Use internal scientific training."}
 
-            OBJECTIVE:
-            1. Synthesize a solution for: {user_query}.
-            2. Apply the LLMGraphTransformer paradigm to extract a knowledge graph from your synthesis.
+            COMPREHENSIVENESS REQUIREMENT:
+            - Provide a long-form, multi-layered, and exhaustive interdisciplinary analysis.
+            - Deeply integrate the selected Science Fields ({", ".join(selected_sciences)}) and Paradigms.
+            - Use a professional, academic, yet innovative tone.
+            - Address specific authors' synergy if data is provided.
 
+            LLMGraphTransformer TASK:
+            - Extract a semantic knowledge graph from your synthesis.
+            
             STRICT OUTPUT FORMAT:
-            A. Markdown response with headers.
-            B. At the very end, add a section starting with '### SEMANTIC_KNOWLEDGE_GRAPH_JSON'.
-            C. Follow it with a JSON block: {{"nodes": [{{"id": "...", "label": "...", "color": "..."}}], "edges": [{{"source": "...", "target": "...", "label": "..."}}]}}
-            Extract key concepts as nodes and relationships as edges.
+            A. Detailed Markdown synthesis with multiple sections.
+            B. At the very end, add the delimiter: ### SEMANTIC_KNOWLEDGE_GRAPH_JSON
+            C. Provide a valid JSON block ONLY: {{"nodes": [{{"id": "node1", "label": "Label", "color": "#hex"}}], "edges": [{{"source": "node1", "target": "node2", "label": "relation"}}]}}
             
             CONFIG:
             Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
-            Sciences: {", ".join(selected_sciences)} | Approaches: {", ".join(selected_approaches)}
+            Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
             """
             
-            with st.spinner('Synthesizing research synergy...'):
+            with st.spinner('Synthesizing high-fidelity research synergy...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
-                    temperature=0.6
+                    temperature=0.6,
+                    max_tokens=4000
                 )
                 
                 full_raw_output = response.choices[0].message.content
@@ -416,49 +423,52 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 st.subheader("📊 Synthesis Output")
                 st.markdown(main_markdown)
 
-                # --- VIZUALIZACIJA 1: SEMANTIČNI GRAF (IZ VSEBINE) ---
+                # --- VISUALIZATION 1: SEMANTIC KNOWLEDGE GRAPH ---
                 if len(parts) > 1:
                     try:
                         json_match = re.search(r'\{.*\}', parts[1], re.DOTALL)
                         if json_match:
                             graph_data = json.loads(json_match.group())
                             st.subheader("🕸️ LLMGraphTransformer: Semantic Knowledge Graph")
-                            st.caption("Extracted semantic relationships from the generated synthesis.")
+                            st.caption("Real-time semantic extraction from the generated synthesis.")
                             
                             semantic_elements = []
                             for n in graph_data.get("nodes", []):
                                 semantic_elements.append({"data": {"id": n["id"], "label": n["label"], "color": n.get("color", "#2a9d8f")}})
                             for e in graph_data.get("edges", []):
-                                semantic_elements.append({"data": {"source": e["source"], "target": e["target"], "label": e.get("label", "related")}})
+                                semantic_elements.append({"data": {"source": e["source"], "target": e["target"], "label": e.get("label", "connects")}})
                             
                             render_cytoscape_network(semantic_elements, "semantic_viz")
                     except Exception as parse_err:
-                        st.warning(f"Semantic graph extraction failed: {parse_err}")
+                        st.warning(f"Semantic graph parsing skipped: {parse_err}")
 
-                # --- VIZUALIZACIJA 2: STRUKTURNI GRAF (IZ VHODOV) ---
+                # --- VISUALIZATION 2: INPUT STRUCTURAL MAP ---
                 st.subheader("📍 Input Synergy Map")
-                st.caption("Structural connectivity of your configuration parameters.")
+                st.caption("Connectivity map of chosen configuration parameters.")
                 input_nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
                 input_edges = []
 
                 for auth in (target_authors.split(",") if target_authors else []):
                     a_name = auth.strip()
                     input_nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
-                    input_edges.append({"data": {"source": "query", "target": a_name, "label": "authored_by"}})
+                    input_edges.append({"data": {"source": "query", "target": a_name, "label": "researcher"}})
 
                 for sci in selected_sciences:
                     input_nodes.append({"data": {"id": sci, "label": sci, "color": "#f4a261"}})
-                    input_edges.append({"data": {"source": "query", "target": sci, "label": "field"}})
+                    input_edges.append({"data": {"source": "query", "target": sci, "label": "discipline"}})
+
+                for model in selected_models:
+                    input_nodes.append({"data": {"id": model, "label": model, "color": "#2a9d8f"}})
+                    input_edges.append({"data": {"source": "query", "target": model, "label": "structure"}})
 
                 render_cytoscape_network(input_nodes + input_edges, "input_viz")
                 
                 if synergy_biblio:
-                    with st.expander("📚 View Active ORCID Metadata"):
+                    with st.expander("📚 View Metadata Fetched from Research Databases"):
                         st.text(synergy_biblio)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.6 Active ORCID & Semantic Graph Edition | 2026")
-
+st.caption("SIS Universal Knowledge Synthesizer | v5.7 Comprehensive ORCID & Semantic Graph Edition | 2026")
