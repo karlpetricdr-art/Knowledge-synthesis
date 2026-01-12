@@ -3,8 +3,8 @@ import json
 import base64
 import requests
 import urllib.parse
-import time  # Dodano za merjenje trajanja klica
-from datetime import datetime  # Dodano za časovne značke
+import time
+from datetime import datetime
 from openai import OpenAI
 import streamlit.components.v1 as components
 
@@ -210,7 +210,11 @@ KNOWLEDGE_BASE = {
         "Computer Science": {
             "cat": "Formal Sciences",
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
+            "tools": [
+                "IDE (VS Code)", "Version Control (Git)", "GPU Clusters",
+                "LLM + LangChain + LLMGraphTransformer", "LLM + Graph Maker / kg-gen",
+                "Plotly Treemap", "squarify + matplotlib", "streamlit-markmap"
+            ],
             "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
         },
         "Medicine": {
@@ -222,7 +226,10 @@ KNOWLEDGE_BASE = {
         "Engineering": {
             "cat": "Applied Sciences",
             "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
+            "tools": [
+                "3D Printers", "CAD Software", "Oscilloscopes",
+                "LLM + LangChain + LLMGraphTransformer", "Plotly Treemap"
+            ],
             "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
         },
         "Library Science": {
@@ -395,7 +402,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
     elif not selected_sciences:
         st.warning("Please select at least one Science Field.")
     else:
-        start_time = time.time() # Začetek merjenja za logging
+        start_time = time.time()
         try:
             # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV
             synergy_biblio = ""
@@ -405,20 +412,24 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # POSODOBLJEN SYSTEM PROMPT Z NOVIMI ORODJI
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
             STRICT RESEARCH CONTEXT (Active Metadata):
             {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
 
-            OBJECTIVE:
-            1. Analyze synergy between the specific research works of {target_authors}.
-            2. Synthesize a solution for: {user_query}.
-            3. Address 'Collaboration Efficiency' in global problem solving.
+            AVAILABLE VISUALIZATION FRAMEWORKS (Internal Knowledge):
+            1. LLM + LangChain + LLMGraphTransformer: Best for semantic knowledge graphs (8-40s).
+            2. LLM + Graph Maker / kg-gen: Good for general graphs (10-60s).
+            3. Plotly Treemap: Interactive hierarchy visualization (1-4s).
+            4. squarify + matplotlib: Fast static treemaps (<2s).
+            5. streamlit-markmap: Ideal for mindmap layouts.
 
-            CONFIG:
-            Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
-            Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
+            OBJECTIVE:
+            1. Analyze synergy between research works of {target_authors}.
+            2. Propose a solution for: {user_query}.
+            3. Suggest the best visualization framework from the list above for the result.
             """
             
             with st.spinner('Synthesizing research synergy...'):
@@ -428,7 +439,6 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     temperature=0.6
                 )
                 
-                # Uspešen logging
                 duration = time.time() - start_time
                 log_api_call("Success", duration)
                 
@@ -440,25 +450,21 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
                 edges = []
 
-                # Poveži avtorje
                 for auth in (target_authors.split(",") if target_authors else []):
                     a_name = auth.strip()
                     nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
                     edges.append({"data": {"source": "query", "target": a_name}})
 
-                # Poveži znanstvene vede
                 for sci in selected_sciences:
                     nodes.append({"data": {"id": sci, "label": sci, "color": "#2a9d8f"}})
                     edges.append({"data": {"source": "query", "target": sci}})
 
-                # Poveži modele
-                for model in selected_models:
-                    nodes.append({"data": {"id": model, "label": model, "color": "#f4a261"}})
-                    edges.append({"data": {"source": "query", "target": model}})
+                for tool in selected_tools:
+                    nodes.append({"data": {"id": tool, "label": tool, "color": "#f4a261"}})
+                    edges.append({"data": {"source": "query", "target": tool}})
 
                 render_cytoscape_network(nodes + edges)
                 
-                # RAZŠIRITEV Z BIBLIOGRAFSKIMI ZAPISI
                 if synergy_biblio:
                     with st.expander("📚 View Metadata Fetched from Research Databases"):
                         st.text(synergy_biblio)
@@ -469,4 +475,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.1 Traffic Monitoring & Cytoscape Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.2 LLM Graph & Advanced Viz Edition | 2026")
