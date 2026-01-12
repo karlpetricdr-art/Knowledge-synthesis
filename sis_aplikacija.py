@@ -3,6 +3,8 @@ import json
 import base64
 import requests
 import urllib.parse
+import time  # Dodano za merjenje trajanja klica
+from datetime import datetime  # Dodano za časovne značke
 from openai import OpenAI
 import streamlit.components.v1 as components
 
@@ -39,6 +41,19 @@ SVG_3D_RELIEF = """
     <rect x="110" y="185" width="20" height="12" rx="2" fill="#f9a825" filter="url(#reliefShadow)" />
 </svg>
 """
+
+# --- LOGGING FUNKCIJA ZA PROMET ---
+def log_api_call(status, duration):
+    """Beleži podatke o API klicu za analitiko prometa."""
+    if 'traffic_log' not in st.session_state:
+        st.session_state.traffic_log = []
+    
+    log_entry = {
+        "timestamp": datetime.now().strftime("%H:%M:%S"),
+        "status": status,
+        "duration": round(duration, 2)
+    }
+    st.session_state.traffic_log.append(log_entry)
 
 # --- CYTOSCAPE VIZUALIZACIJA ---
 def render_cytoscape_network(elements):
@@ -239,9 +254,11 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
-# Inicializacija stanja za vidnost vodiča
+# Inicializacija seje
 if 'show_user_guide' not in st.session_state:
     st.session_state.show_user_guide = False
+if 'traffic_log' not in st.session_state:
+    st.session_state.traffic_log = []
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
@@ -252,7 +269,7 @@ with st.sidebar:
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # User Guide toggle logic
+    # User Guide
     if st.button("📖 User Guide"):
         st.session_state.show_user_guide = not st.session_state.show_user_guide
         st.rerun()
@@ -270,6 +287,20 @@ with st.sidebar:
         if st.button("Close Guide ✖️"):
             st.session_state.show_user_guide = False
             st.rerun()
+    
+    # --- TRAFFIC MONITOR (Logging & Polling) ---
+    st.divider()
+    st.subheader("📊 API Traffic Monitor")
+    if st.session_state.traffic_log:
+        total_calls = len(st.session_state.traffic_log)
+        avg_dur = sum(l['duration'] for l in st.session_state.traffic_log) / total_calls
+        st.metric("Total API Calls", total_calls)
+        st.metric("Avg Latency", f"{avg_dur:.2f}s")
+        with st.expander("View Call History"):
+            for log in reversed(st.session_state.traffic_log[-5:]):
+                st.caption(f"[{log['timestamp']}] {log['status']} - {log['duration']}s")
+    else:
+        st.write("No traffic recorded yet.")
         
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
@@ -364,6 +395,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
     elif not selected_sciences:
         st.warning("Please select at least one Science Field.")
     else:
+        start_time = time.time() # Začetek merjenja za logging
         try:
             # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV
             synergy_biblio = ""
@@ -395,6 +427,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
+                
+                # Uspešen logging
+                duration = time.time() - start_time
+                log_api_call("Success", duration)
+                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
 
@@ -427,7 +464,9 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                         st.text(synergy_biblio)
                 
         except Exception as e:
+            duration = time.time() - start_time
+            log_api_call("Failed", duration)
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.0 Active ORCID Bibliography & Cytoscape Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.1 Traffic Monitoring & Cytoscape Edition | 2026")
