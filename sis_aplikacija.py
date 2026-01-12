@@ -248,16 +248,16 @@ with st.sidebar:
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # DODANO: Vodič v obliki klikalnega gumba pod poljem za API ključ
-    if st.button("📖 Vodič za uporabo"):
+    # DODANO: User Guide v obliki klikalnega gumba pod poljem za API ključ (PREVEDENO)
+    if st.button("📖 User Guide"):
         st.info("""
-        1. **API ključ**: Najprej vnesite svoj Groq API ključ za povezavo z umetno inteligenco.
-        2. **Profil uporabnika**: Izberite način razmišljanja, ki najbolj ustreza vašemu raziskovalnemu slogu.
-        3. **Znanstvena področja**: Določite eno ali več disciplin, ki jih želite medsebojno povezati.
-        4. **Nastavitve parametrov**: Prilagodite stopnjo strokovnosti, strukturne modele in paradigme.
-        5. **Vnos raziskovalcev**: Po želji vnesite imena avtorjev za vključitev njihove bibliografije v sintezo.
-        6. **Postavite vprašanje**: V spodnje polje vpišite svojo poizvedbo ali problem, ki ga želite rešiti.
-        7. **Izvedba sinteze**: Kliknite na gumb 'Execute' za generiranje odgovora in interaktivnega omrežja.
+        1. **API Key**: First, enter your Groq API key to connect the application to the AI engine.
+        2. **User Profile**: Select the thinking style or cognitive profile that best suits your research approach.
+        3. **Science Fields**: Define one or more academic disciplines you wish to interconnect or analyze.
+        4. **Parameter Settings**: Fine-tune your expertise level, structural models, and scientific paradigms.
+        5. **Research Authors**: Optionally enter author names to fetch and include their bibliography in the synthesis.
+        6. **Submit Inquiry**: Type your specific query or the problem you want to solve in the text area below.
+        7. **Execute Synthesis**: Click the 'Execute' button to generate the multidimensional response and the network map.
         """)
         
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
