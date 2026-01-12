@@ -41,9 +41,25 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-# --- CYTOSCAPE VIZUALIZACIJA ---
-def render_cytoscape_network(elements, container_id="cy"):
-    """Izriše barvito interaktivno omrežje Cytoscape.js."""
+# --- CYTOSCAPE RENDERER Z JS NAVIGACIJO ---
+def render_cytoscape_network(elements, container_id="cy", clickable=False):
+    """Izriše interaktivno omrežje Cytoscape.js z možnostjo scroll-to-text."""
+    click_js = ""
+    if clickable:
+        click_js = """
+        cy.on('tap', 'node', function(evt){
+            var node = evt.target;
+            var elementId = node.id();
+            // Poskus navigacije v parent oknu
+            var target = window.parent.document.getElementById(elementId);
+            if (target) {
+                target.scrollIntoView({behavior: "smooth", block: "center"});
+                target.style.backgroundColor = "#ffffcc";
+                setTimeout(function(){ target.style.backgroundColor = "transparent"; }, 2000);
+            }
+        });
+        """
+
     cyto_html = f"""
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
     <div id="{container_id}" style="width: 100%; height: 500px; background: #ffffff; border-radius: 15px; border: 1px solid #eee;"></div>
@@ -61,7 +77,8 @@ def render_cytoscape_network(elements, container_id="cy"):
                     'font-size': '11px',
                     'font-weight': 'bold',
                     'text-outline-width': 2,
-                    'text-outline-color': '#fff'
+                    'text-outline-color': '#fff',
+                    'cursor': 'pointer'
                 }} }},
                 {{ selector: 'edge', style: {{ 
                     'width': 3, 
@@ -74,14 +91,15 @@ def render_cytoscape_network(elements, container_id="cy"):
                     'text-rotation': 'autorotate'
                 }} }}
             ],
-            layout: {{ name: 'cose', padding: 40, animate: true, nodeRepulsion: 10000 }}
+            layout: {{ name: 'cose', padding: 40, animate: true }}
         }});
+        {click_js}
     </script>
     """
     components.html(cyto_html, height=520)
 
 def fetch_author_bibliographies(author_input):
-    """Zajame bibliografske podatke o delih več avtorjev preko ORCID Public API v3.0 in Scholar Proxy."""
+    """Zajame bibliografske podatke preko ORCID in Semantic Scholar."""
     if not author_input: return ""
     author_list = [a.strip() for a in author_input.split(",")]
     comprehensive_biblio = ""
@@ -110,7 +128,6 @@ def fetch_author_bibliographies(author_input):
                         summary = work.get('work-summary', [{}])[0]
                         title = summary.get('title', {}).get('title', {}).get('value', 'N/A')
                         comprehensive_biblio += f"- {title}\n"
-                else: comprehensive_biblio += "No public works found.\n"
             except: pass
         else:
             try:
@@ -122,120 +139,34 @@ def fetch_author_bibliographies(author_input):
                     for p in papers:
                         comprehensive_biblio += f"- {p['title']} ({p.get('year','n.d.')})\n"
             except: pass
-            
     return comprehensive_biblio
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL 12 FIELDS)
 # =========================================================
 KNOWLEDGE_BASE = {
-    "mental_approaches": [
-        "Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max",
-        "Whole and part", "Addition and composition", "Balance", "Abstraction and elimination",
-        "Openness and closedness", "Bipolarity and dialectics", "Framework and foundation",
-        "Pleasure and displeasure", "Similarity and difference", "Core (Attraction & Repulsion)",
-        "Condensation", "Constant", "Associativity"
-    ],
+    "mental_approaches": ["Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max", "Whole and part", "Addition and composition", "Balance", "Abstraction and elimination", "Openness and closedness", "Bipolarity and dialectics", "Framework and foundation", "Pleasure and displeasure", "Similarity and difference", "Core (Attraction & Repulsion)", "Condensation", "Constant", "Associativity"],
     "profiles": {
-        "Adventurers": {"drivers": "discovery", "description": "Explorers seeking hidden patterns."},
-        "Applicators": {"drivers": "utility", "description": "Pragmatic minds focused on efficiency."},
-        "Know-it-alls": {"drivers": "synthesis", "description": "Systemic thinkers seeking absolute clarity."},
-        "Observers": {"drivers": "evolution", "description": "Detached analysts who monitor systems."}
+        "Adventurers": {"description": "Explorers seeking hidden patterns."},
+        "Applicators": {"description": "Pragmatic minds focused on efficiency."},
+        "Know-it-alls": {"description": "Systemic thinkers seeking absolute clarity."},
+        "Observers": {"description": "Detached analysts who monitor systems."}
     },
-    "paradigms": {
-        "Empiricism": "Knowledge based on sensory experience and induction.",
-        "Rationalism": "Knowledge based on deductive logic and innate principles.",
-        "Constructivism": "Knowledge as a social construction.",
-        "Positivism": "Strict adherence to scientific facts.",
-        "Pragmatism": "Knowledge validated by practical success."
-    },
-    "knowledge_models": {
-        "Causal Connections": "Analyzing causes, effects, and the 'why'.",
-        "Principles & Relations": "Constant laws and fundamental correlations.",
-        "Episodes & Sequences": "Organizing knowledge as a chronological flow.",
-        "Facts & Characteristics": "Raw data and properties of objects.",
-        "Generalizations": "Broad, universal conceptual frameworks.",
-        "Glossary": "Precise definitions of terminology.",
-        "Concepts": "Abstract mental constructs and situational maps."
-    },
+    "paradigms": {"Empiricism": "Based on sensory experience.", "Rationalism": "Based on logic.", "Constructivism": "Socially constructed.", "Positivism": "Scientific facts.", "Pragmatism": "Practical success."},
+    "knowledge_models": {"Causal Connections": "Why and how.", "Principles & Relations": "Fundamental laws.", "Episodes & Sequences": "Chronology.", "Facts & Characteristics": "Raw data.", "Generalizations": "Universal frameworks.", "Glossary": "Terminology.", "Concepts": "Abstract constructs."},
     "subject_details": {
-        "Physics": {
-            "cat": "Natural Sciences",
-            "methods": ["Mathematical Modeling", "Experimental Method", "Simulation"],
-            "tools": ["Particle Accelerator", "Spectrometer", "Interferometer"],
-            "facets": ["Quantum Mechanics", "Relativity", "Thermodynamics"]
-        },
-        "Chemistry": {
-            "cat": "Natural Sciences",
-            "methods": ["Chemical Synthesis", "Spectroscopy", "Chromatography"],
-            "tools": ["Mass Spectrometer", "NMR Spectrometer", "Electron Microscope"],
-            "facets": ["Molecular Bonding", "Organic Chemistry", "Electrochemistry"]
-        },
-        "Biology": {
-            "cat": "Natural Sciences",
-            "methods": ["CRISPR Editing", "DNA Sequencing", "Field Observation"],
-            "tools": ["Gene Sequencer", "Confocal Microscope", "Bio-Incubator"],
-            "facets": ["Genetics", "Cell Biology", "Ecology"]
-        },
-        "Neuroscience": {
-            "cat": "Natural Sciences",
-            "methods": ["Neuroimaging", "Electrophysiology", "Optogenetics"],
-            "tools": ["fMRI Scanner", "EEG", "Patch-clamp Amplifier"],
-            "facets": ["Neuroplasticity", "Synaptic Transmission", "Cognitive Mapping"]
-        },
-        "Psychology": {
-            "cat": "Social Sciences",
-            "methods": ["Double-Blind Trials", "Psychometrics", "Neuroimaging"],
-            "tools": ["fMRI Scanner", "EEG", "Standardized Testing Kits"],
-            "facets": ["Behavioral Cognition", "Neuroscience", "Developmental Psychology"]
-        },
-        "Sociology": {
-            "cat": "Social Sciences",
-            "methods": ["Ethnography", "Statistical Surveys", "Content Analysis"],
-            "tools": ["Data Analytics Software", "Archival Records", "Network Mapping Tools"],
-            "facets": ["Social Stratification", "Group Dynamics", "Urbanization"]
-        },
-        "Computer Science": {
-            "cat": "Formal Sciences",
-            "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": [
-                "IDE (VS Code)", "GPU Clusters", 
-                "LLM + LangChain + LLMGraphTransformer", 
-                "LLM + Graph Maker / kg-gen",
-                "Plotly Treemap", "streamlit-markmap"
-            ],
-            "facets": ["Artificial Intelligence", "Knowledge Graphs", "Cybersecurity"]
-        },
-        "Medicine": {
-            "cat": "Applied Sciences",
-            "methods": ["Clinical Trials", "Epidemiology", "Diagnostic Analysis"],
-            "tools": ["MRI/CT Scanners", "Stethoscopes", "Bio-Markers"],
-            "facets": ["Pathology", "Immunology", "Pharmacology"]
-        },
-        "Engineering": {
-            "cat": "Applied Sciences",
-            "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
-            "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
-        },
-        "Library Science": {
-            "cat": "Applied Sciences",
-            "methods": ["Taxonomic Classification", "Archival Appraisal", "Bibliometric Analysis"],
-            "tools": ["OPAC Systems", "Metadata Schemas", "Digital Repositories"],
-            "facets": ["Information Retrieval", "Knowledge Organization"]
-        },
-        "Philosophy": {
-            "cat": "Humanities",
-            "methods": ["Socratic Method", "Conceptual Analysis", "Phenomenology"],
-            "tools": ["Library Archives", "Logic Mapping Tools", "Critical Text Analysis"],
-            "facets": ["Ethics", "Metaphysics", "Epistemology"]
-        },
-        "Linguistics": {
-            "cat": "Humanities",
-            "methods": ["Corpus Analysis", "Syntactic Parsing", "Phonetic Transcription"],
-            "tools": ["Praat", "Natural Language Toolkits (NLTK)", "Concordance Software"],
-            "facets": ["Syntax & Morphology", "Sociolinguistics", "Computational Linguistics"]
-        }
+        "Physics": {"methods": ["Mathematical Modeling", "Simulation"], "tools": ["Particle Accelerator", "Spectrometer"], "facets": ["Quantum Mechanics", "Relativity"]},
+        "Chemistry": {"methods": ["Chemical Synthesis", "Spectroscopy"], "tools": ["NMR Spectrometer", "Electron Microscope"], "facets": ["Organic Chemistry", "Molecular Bonding"]},
+        "Biology": {"methods": ["DNA Sequencing", "CRISPR Editing"], "tools": ["Gene Sequencer", "Confocal Microscope"], "facets": ["Genetics", "Ecology"]},
+        "Neuroscience": {"methods": ["Neuroimaging", "Electrophysiology"], "tools": ["fMRI Scanner", "EEG"], "facets": ["Neuroplasticity", "Cognitive Mapping"]},
+        "Psychology": {"methods": ["Double-Blind Trials", "Psychometrics"], "tools": ["Standardized Testing"], "facets": ["Behavioral Cognition", "Developmental"]},
+        "Sociology": {"methods": ["Ethnography", "Surveys"], "tools": ["Data Analytics Software"], "facets": ["Social Stratification", "Group Dynamics"]},
+        "Computer Science": {"methods": ["Algorithm Design", "Formal Verification"], "tools": ["LLM + LangChain + LLMGraphTransformer", "Plotly Treemap", "streamlit-markmap"], "facets": ["Artificial Intelligence", "Knowledge Graphs"]},
+        "Medicine": {"methods": ["Clinical Trials", "Epidemiology"], "tools": ["MRI/CT Scanners", "Bio-Markers"], "facets": ["Immunology", "Pharmacology"]},
+        "Engineering": {"methods": ["Prototyping", "Finite Element Analysis"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Structural Dynamics"]},
+        "Library Science": {"methods": ["Taxonomic Classification", "Bibliometrics"], "tools": ["OPAC Systems", "Metadata Schemas"], "facets": ["Information Retrieval", "Knowledge Organization"]},
+        "Philosophy": {"methods": ["Socratic Method", "Phenomenology"], "tools": ["Logic Mapping Tools"], "facets": ["Epistemology", "Ethics"]},
+        "Linguistics": {"methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK"], "facets": ["Sociolinguistics", "Computational Linguistics"]}
     }
 }
 
@@ -244,22 +175,18 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-if 'expertise_val' not in st.session_state: 
-    st.session_state.expertise_val = "Intermediate"
-
-if 'show_user_guide' not in st.session_state:
-    st.session_state.show_user_guide = False
+if 'expertise_val' not in st.session_state: st.session_state.expertise_val = "Intermediate"
+if 'show_user_guide' not in st.session_state: st.session_state.show_user_guide = False
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine with **Active LLMGraphTransformer Architecture**.")
+st.markdown("Multi-dimensional synthesis engine with **Interactive LLMGraphTransformer Architecture**.")
 
-# --- SIDEBAR START ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # User Guide toggle logic
     if st.button("📖 User Guide"):
         st.session_state.show_user_guide = not st.session_state.show_user_guide
         st.rerun()
@@ -267,12 +194,12 @@ with st.sidebar:
     if st.session_state.show_user_guide:
         st.info("""
         1. **API Key**: Enter your Groq API key for AI-driven synthesis.
-        2. **User Profile**: Select your cognitive thinking style.
-        3. **Science Fields**: Interconnect multiple academic disciplines.
-        4. **Parameter Settings**: Fine-tune expertise, structural models, and paradigms.
-        5. **Research Authors**: Input authors to fetch their real bibliographies.
-        6. **Submit Inquiry**: Describe the problem you want to synthesize.
-        7. **Execution**: The system will generate text AND a semantic knowledge graph.
+        2. **User Profile**: Select your cognitive thinking style (e.g., Adventurer).
+        3. **Science Fields**: Interconnect multiple academic disciplines (up to 12).
+        4. **Parameter Settings**: Fine-tune expertise levels, models, and paradigms.
+        5. **Research Authors**: Input names to fetch real bibliographic data via ORCID.
+        6. **Submit Inquiry**: Describe the specific complex problem you want to synthesize.
+        7. **Interactive Results**: Click nodes in the Semantic Graph to scroll to their definitions in the text.
         """)
         if st.button("Close Guide ✖️"):
             st.session_state.show_user_guide = False
@@ -312,52 +239,34 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
-# =========================================================
-# 🛠️ CONFIGURE INTERFACE (FULL 4 ROWS)
-# =========================================================
+# --- CONFIGURE INTERFACE (4 ROWS) ---
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# --- ROW 1: RESEARCH AUTHORS ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
-    target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
+    target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active connectivity for real-time bibliographic synergy analysis via ORCID.")
 
-# --- ROW 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
-with r2_c1:
-    selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
-with r2_c2:
-    sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_sciences = st.multiselect("2. Science Fields:", sciences_list, default=["Computer Science"])
-with r2_c3:
-    expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
+with r2_c1: selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
+with r2_c2: selected_sciences = st.multiselect("2. Science Fields:", sorted(list(KNOWLEDGE_BASE["subject_details"].keys())), default=["Computer Science"])
+with r2_c3: expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# --- ROW 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
-with r3_c1:
-    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
-with r3_c2:
-    selected_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
-with r3_c3:
-    goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
+with r3_c1: selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
+with r3_c2: selected_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
+with r3_c3: goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
-# --- ROW 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
-with r4_c1:
-    selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
+with r4_c1: selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 
-agg_methods = []
-agg_tools = []
+agg_methods, agg_tools = [], []
 for s in selected_sciences:
-    if s in KNOWLEDGE_BASE["subject_details"]:
-        agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-        agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+    agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
-with r4_c2:
-    selected_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_methods))))
-with r4_c3:
-    selected_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tools))))
+with r4_c2: selected_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_methods))))
+with r4_c3: selected_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tools))))
 
 st.divider()
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Provide a deep interdisciplinary inquiry...")
@@ -372,38 +281,27 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
-            # 1. FETCH BIBLIOGRAPHY
-            synergy_biblio = ""
-            if target_authors:
-                with st.spinner(f'Compiling research synergy for {target_authors}...'):
-                    synergy_biblio = fetch_author_bibliographies(target_authors)
-
+            synergy_biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # 2. CONSTRUCT SYSTEM PROMPT (Optimized for comprehensiveness)
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
-            STRICT RESEARCH CONTEXT:
-            {synergy_biblio if synergy_biblio else "Use internal scientific training."}
+            STRICT RESEARCH CONTEXT (Active ORCID Metadata):
+            {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
 
             COMPREHENSIVENESS REQUIREMENT:
-            - Provide a long-form, multi-layered, and exhaustive interdisciplinary analysis.
-            - Deeply integrate the selected Science Fields ({", ".join(selected_sciences)}) and Paradigms.
-            - Use a professional, academic, yet innovative tone.
-            - Address specific authors' synergy if data is provided.
+            - Provide a long-form, multi-layered interdisciplinary analysis (at least 800 words).
+            - Integrate selected fields: {", ".join(selected_sciences)}.
+            - Use academic depth combined with innovative synthesis.
 
             LLMGraphTransformer TASK:
-            - Extract a semantic knowledge graph from your synthesis.
+            - Extract a semantic knowledge graph from your synthesis for visualization.
             
             STRICT OUTPUT FORMAT:
-            A. Detailed Markdown synthesis with multiple sections.
-            B. At the very end, add the delimiter: ### SEMANTIC_KNOWLEDGE_GRAPH_JSON
-            C. Provide a valid JSON block ONLY: {{"nodes": [{{"id": "node1", "label": "Label", "color": "#hex"}}], "edges": [{{"source": "node1", "target": "node2", "label": "relation"}}]}}
-            
-            CONFIG:
-            Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
-            Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
+            1. Detailed Markdown synthesis with clearly defined concepts.
+            2. At the very end, add the delimiter: ### SEMANTIC_KNOWLEDGE_GRAPH_JSON
+            3. Followed by a valid JSON block ONLY: {{"nodes": [{{"id": "node_id", "label": "Concept Name", "color": "#hex"}}], "edges": [{{"source": "node_id", "target": "node_id_2", "label": "relationship"}}]}}
             """
             
             with st.spinner('Synthesizing high-fidelity research synergy...'):
@@ -415,22 +313,33 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 )
                 
                 full_raw_output = response.choices[0].message.content
-                
-                # PARSING THE OUTPUT
                 parts = full_raw_output.split("### SEMANTIC_KNOWLEDGE_GRAPH_JSON")
                 main_markdown = parts[0]
                 
-                st.subheader("📊 Synthesis Output")
-                st.markdown(main_markdown)
+                # --- PROCESS MARKDOWN FOR CLICKABLE ANCHORS ---
+                if len(parts) > 1:
+                    try:
+                        json_match = re.search(r'\{.*\}', parts[1], re.DOTALL)
+                        if json_match:
+                            graph_data = json.loads(json_match.group())
+                            for node in graph_data.get("nodes", []):
+                                label, nid = node["label"], node["id"]
+                                pattern = re.compile(re.escape(label), re.IGNORECASE)
+                                replacement = f'<span id="{nid}" style="color:#2a9d8f; font-weight:bold; border-bottom:1px dashed #2a9d8f;">{label}</span>'
+                                main_markdown = pattern.sub(replacement, main_markdown, count=1)
+                    except: pass
 
-                # --- VISUALIZATION 1: SEMANTIC KNOWLEDGE GRAPH ---
+                st.subheader("📊 Synthesis Output")
+                st.markdown(main_markdown, unsafe_allow_html=True)
+
+                # --- VIZUALIZACIJA 1: SEMANTIČNI GRAF ---
                 if len(parts) > 1:
                     try:
                         json_match = re.search(r'\{.*\}', parts[1], re.DOTALL)
                         if json_match:
                             graph_data = json.loads(json_match.group())
                             st.subheader("🕸️ LLMGraphTransformer: Semantic Knowledge Graph")
-                            st.caption("Real-time semantic extraction from the generated synthesis.")
+                            st.caption("Click any concept node to scroll to its definition in the text above.")
                             
                             semantic_elements = []
                             for n in graph_data.get("nodes", []):
@@ -438,37 +347,24 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                             for e in graph_data.get("edges", []):
                                 semantic_elements.append({"data": {"source": e["source"], "target": e["target"], "label": e.get("label", "connects")}})
                             
-                            render_cytoscape_network(semantic_elements, "semantic_viz")
-                    except Exception as parse_err:
-                        st.warning(f"Semantic graph parsing skipped: {parse_err}")
+                            render_cytoscape_network(semantic_elements, "semantic_viz", clickable=True)
+                    except: st.warning("Graph data parsing failed.")
 
-                # --- VISUALIZATION 2: INPUT STRUCTURAL MAP ---
+                # --- VIZUALIZACIJA 2: INPUT MAP ---
                 st.subheader("📍 Input Synergy Map")
-                st.caption("Connectivity map of chosen configuration parameters.")
-                input_nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
+                input_nodes = [{"data": {"id": "q", "label": "INQUIRY", "color": "#e63946"}}]
                 input_edges = []
-
-                for auth in (target_authors.split(",") if target_authors else []):
-                    a_name = auth.strip()
-                    input_nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
-                    input_edges.append({"data": {"source": "query", "target": a_name, "label": "researcher"}})
-
-                for sci in selected_sciences:
-                    input_nodes.append({"data": {"id": sci, "label": sci, "color": "#f4a261"}})
-                    input_edges.append({"data": {"source": "query", "target": sci, "label": "discipline"}})
-
-                for model in selected_models:
-                    input_nodes.append({"data": {"id": model, "label": model, "color": "#2a9d8f"}})
-                    input_edges.append({"data": {"source": "query", "target": model, "label": "structure"}})
-
+                for s in selected_sciences:
+                    input_nodes.append({"data": {"id": s, "label": s, "color": "#f4a261"}})
+                    input_edges.append({"data": {"source": "q", "target": s, "label": "discipline"}})
                 render_cytoscape_network(input_nodes + input_edges, "input_viz")
                 
                 if synergy_biblio:
-                    with st.expander("📚 View Metadata Fetched from Research Databases"):
+                    with st.expander("📚 View Fetched Metadata"):
                         st.text(synergy_biblio)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.7 Comprehensive ORCID & Semantic Graph Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.9 Interactive Semantic Graph Edition | 2026")
