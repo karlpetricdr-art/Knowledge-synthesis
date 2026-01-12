@@ -195,7 +195,7 @@ KNOWLEDGE_BASE = {
         "Computer Science": {
             "cat": "Formal Sciences",
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
-            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters"],
+            "tools": ["IDE (VS Code)", "Version Control (Git)", "GPU Clusters", "ComfyUI"],
             "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
         },
         "Medicine": {
@@ -207,7 +207,7 @@ KNOWLEDGE_BASE = {
         "Engineering": {
             "cat": "Applied Sciences",
             "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
+            "tools": ["3D Printers", "CAD Software", "Oscilloscopes", "ComfyUI"],
             "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
         },
         "Library Science": {
@@ -239,9 +239,11 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
-# Inicializacija stanja za vidnost vodiča
+# Inicializacija stanja za vidnost vodiča in ComfyUI
 if 'show_user_guide' not in st.session_state:
     st.session_state.show_user_guide = False
+if 'show_comfy' not in st.session_state:
+    st.session_state.show_comfy = False
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
@@ -252,7 +254,7 @@ with st.sidebar:
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # Preklopni mehanizem za User Guide
+    # User Guide z možnostjo preklopa
     if st.button("📖 User Guide"):
         st.session_state.show_user_guide = not st.session_state.show_user_guide
         st.rerun()
@@ -273,6 +275,20 @@ with st.sidebar:
         
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
+    st.divider()
+    st.subheader("🎨 ComfyUI Workspace")
+    comfy_url = st.text_input("ComfyUI URL:", value="http://127.0.0.1:8188", help="URL of your running ComfyUI instance")
+    if st.button("🚀 Open ComfyUI"):
+        st.session_state.show_comfy = not st.session_state.show_comfy
+        st.rerun()
+
+    if st.session_state.show_comfy:
+        st.caption("Embedding ComfyUI Node-RED interface...")
+        components.iframe(comfy_url, height=600, scrolling=True)
+        if st.button("Close ComfyUI ✖️"):
+            st.session_state.show_comfy = False
+            st.rerun()
+
     st.divider()
     st.subheader("🚀 Quick Templates")
     col_t1, col_t2 = st.columns(2)
@@ -301,6 +317,7 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     
+    st.link_button("🖼️ ComfyUI GitHub", "https://github.com/comfyanonymous/ComfyUI", use_container_width=True)
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
@@ -430,4 +447,4 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.0 Active ORCID Bibliography & Cytoscape Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.0 Active ORCID Bibliography, ComfyUI & Cytoscape Edition | 2026")
