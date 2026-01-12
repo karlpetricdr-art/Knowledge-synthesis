@@ -239,6 +239,10 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
+# Inicializacija stanja za vidnost vodiča
+if 'show_user_guide' not in st.session_state:
+    st.session_state.show_user_guide = False
+
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
 
@@ -248,8 +252,12 @@ with st.sidebar:
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # DODANO: User Guide v obliki klikalnega gumba pod poljem za API ključ (PREVEDENO)
+    # Preklopni mehanizem za User Guide
     if st.button("📖 User Guide"):
+        st.session_state.show_user_guide = not st.session_state.show_user_guide
+        st.rerun()
+
+    if st.session_state.show_user_guide:
         st.info("""
         1. **API Key**: First, enter your Groq API key to connect the application to the AI engine.
         2. **User Profile**: Select the thinking style or cognitive profile that best suits your research approach.
@@ -259,6 +267,9 @@ with st.sidebar:
         6. **Submit Inquiry**: Type your specific query or the problem you want to solve in the text area below.
         7. **Execute Synthesis**: Click the 'Execute' button to generate the multidimensional response and the network map.
         """)
+        if st.button("Close Guide ✖️"):
+            st.session_state.show_user_guide = False
+            st.rerun()
         
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
