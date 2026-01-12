@@ -3,8 +3,6 @@ import json
 import base64
 import requests
 import urllib.parse
-import time
-from datetime import datetime
 from openai import OpenAI
 import streamlit.components.v1 as components
 
@@ -41,19 +39,6 @@ SVG_3D_RELIEF = """
     <rect x="110" y="185" width="20" height="12" rx="2" fill="#f9a825" filter="url(#reliefShadow)" />
 </svg>
 """
-
-# --- LOGGING FUNKCIJA ZA PROMET ---
-def log_api_call(status, duration):
-    """Beleži podatke o API klicu za analitiko prometa."""
-    if 'traffic_log' not in st.session_state:
-        st.session_state.traffic_log = []
-    
-    log_entry = {
-        "timestamp": datetime.now().strftime("%H:%M:%S"),
-        "status": status,
-        "duration": round(duration, 2)
-    }
-    st.session_state.traffic_log.append(log_entry)
 
 # --- CYTOSCAPE VIZUALIZACIJA ---
 def render_cytoscape_network(elements):
@@ -138,7 +123,7 @@ def fetch_author_bibliographies(author_input):
     return comprehensive_biblio
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -212,8 +197,11 @@ KNOWLEDGE_BASE = {
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
             "tools": [
                 "IDE (VS Code)", "Version Control (Git)", "GPU Clusters",
-                "LLM + LangChain + LLMGraphTransformer", "LLM + Graph Maker / kg-gen",
-                "Plotly Treemap", "squarify + matplotlib", "streamlit-markmap"
+                "LLM + LangChain + LLMGraphTransformer",
+                "LLM + Graph Maker / kg-gen",
+                "Plotly Treemap",
+                "squarify + matplotlib",
+                "streamlit-markmap"
             ],
             "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
         },
@@ -226,10 +214,7 @@ KNOWLEDGE_BASE = {
         "Engineering": {
             "cat": "Applied Sciences",
             "methods": ["Prototyping", "Systems Engineering", "Finite Element Analysis"],
-            "tools": [
-                "3D Printers", "CAD Software", "Oscilloscopes",
-                "LLM + LangChain + LLMGraphTransformer", "Plotly Treemap"
-            ],
+            "tools": ["3D Printers", "CAD Software", "Oscilloscopes"],
             "facets": ["Robotics", "Nanotechnology", "Structural Dynamics"]
         },
         "Library Science": {
@@ -261,11 +246,8 @@ st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide"
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
-# Inicializacija seje
 if 'show_user_guide' not in st.session_state:
     st.session_state.show_user_guide = False
-if 'traffic_log' not in st.session_state:
-    st.session_state.traffic_log = []
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
@@ -276,7 +258,7 @@ with st.sidebar:
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
     
-    # User Guide
+    # User Guide toggle logic
     if st.button("📖 User Guide"):
         st.session_state.show_user_guide = not st.session_state.show_user_guide
         st.rerun()
@@ -294,20 +276,6 @@ with st.sidebar:
         if st.button("Close Guide ✖️"):
             st.session_state.show_user_guide = False
             st.rerun()
-    
-    # --- TRAFFIC MONITOR (Logging & Polling) ---
-    st.divider()
-    st.subheader("📊 API Traffic Monitor")
-    if st.session_state.traffic_log:
-        total_calls = len(st.session_state.traffic_log)
-        avg_dur = sum(l['duration'] for l in st.session_state.traffic_log) / total_calls
-        st.metric("Total API Calls", total_calls)
-        st.metric("Avg Latency", f"{avg_dur:.2f}s")
-        with st.expander("View Call History"):
-            for log in reversed(st.session_state.traffic_log[-5:]):
-                st.caption(f"[{log['timestamp']}] {log['status']} - {log['duration']}s")
-    else:
-        st.write("No traffic recorded yet.")
         
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
@@ -344,17 +312,15 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # =========================================================
-# 🛠️ CONFIGURE INTERFACE (RESTRUCTURED TO 4 ROWS)
+# 🛠️ CONFIGURE INTERFACE
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
-# --- VRSTICA 1: RESEARCH AUTHORS (SREDINA) ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active connectivity for real-time bibliographic synergy analysis.")
 
-# --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
@@ -364,7 +330,6 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
@@ -373,12 +338,10 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
-# --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
 
-# Agregacija metod in orodij
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
@@ -402,9 +365,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
     elif not selected_sciences:
         st.warning("Please select at least one Science Field.")
     else:
-        start_time = time.time()
         try:
-            # AKTIVNI ZAJEM BIBLIOGRAFSKIH PODATKOV
             synergy_biblio = ""
             if target_authors:
                 with st.spinner(f'Compiling research synergy for {target_authors}...'):
@@ -412,24 +373,24 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # POSODOBLJEN SYSTEM PROMPT Z NOVIMI ORODJI
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
             STRICT RESEARCH CONTEXT (Active Metadata):
             {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
 
-            AVAILABLE VISUALIZATION FRAMEWORKS (Internal Knowledge):
-            1. LLM + LangChain + LLMGraphTransformer: Best for semantic knowledge graphs (8-40s).
-            2. LLM + Graph Maker / kg-gen: Good for general graphs (10-60s).
-            3. Plotly Treemap: Interactive hierarchy visualization (1-4s).
-            4. squarify + matplotlib: Fast static treemaps (<2s).
-            5. streamlit-markmap: Ideal for mindmap layouts.
-
             OBJECTIVE:
-            1. Analyze synergy between research works of {target_authors}.
-            2. Propose a solution for: {user_query}.
-            3. Suggest the best visualization framework from the list above for the result.
+            1. Analyze synergy between the specific research works of {target_authors}.
+            2. Synthesize a solution for: {user_query}.
+            3. Consider advanced visualization frameworks if applicable:
+               - LLM + LangChain + LLMGraphTransformer (Knowledge Graph synthesis)
+               - LLM + Graph Maker / kg-gen (Alternative Graph generation)
+               - Plotly Treemap (Interactive hierarchy)
+               - streamlit-markmap (Mindmap layout)
+
+            CONFIG:
+            Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
+            Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
             """
             
             with st.spinner('Synthesizing research synergy...'):
@@ -438,14 +399,10 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
-                
-                duration = time.time() - start_time
-                log_api_call("Success", duration)
-                
                 st.subheader("📊 Synthesis Output")
                 st.markdown(response.choices[0].message.content)
 
-                # --- CYTOSCAPE VIZUALIZACIJA OMREŽJA ---
+                # --- CYTOSCAPE ---
                 st.subheader("🕸️ Multi-Dimensional Synergy Network")
                 nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
                 edges = []
@@ -459,9 +416,9 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     nodes.append({"data": {"id": sci, "label": sci, "color": "#2a9d8f"}})
                     edges.append({"data": {"source": "query", "target": sci}})
 
-                for tool in selected_tools:
-                    nodes.append({"data": {"id": tool, "label": tool, "color": "#f4a261"}})
-                    edges.append({"data": {"source": "query", "target": tool}})
+                for model in selected_models:
+                    nodes.append({"data": {"id": model, "label": model, "color": "#f4a261"}})
+                    edges.append({"data": {"source": "query", "target": model}})
 
                 render_cytoscape_network(nodes + edges)
                 
@@ -470,9 +427,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                         st.text(synergy_biblio)
                 
         except Exception as e:
-            duration = time.time() - start_time
-            log_api_call("Failed", duration)
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.2 LLM Graph & Advanced Viz Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.4 LLM Graph & Advanced Viz Edition | 2026")
