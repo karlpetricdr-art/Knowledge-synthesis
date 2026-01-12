@@ -7,21 +7,6 @@ from openai import OpenAI
 import streamlit.components.v1 as components
 
 # =========================================================
-# GOOGLE ANALYTICS INTEGRACIJA
-# =========================================================
-GA_ID = "G-90E8P7QLF6" 
-
-ga_code = f"""
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
-        gtag('config', '{GA_ID}');
-    </script>
-"""
-
-# =========================================================
 # 0. POMOŽNE FUNKCIJE IN LOGO (Embedded SVG)
 # =========================================================
 def get_svg_base64(svg_str):
@@ -251,9 +236,6 @@ KNOWLEDGE_BASE = {
 # =========================================================
 st.set_page_config(page_title="SIS Synthesizer", page_icon="🌳", layout="wide")
 
-# Google Analytics
-components.html(ga_code, height=0)
-
 if 'expertise_val' not in st.session_state: 
     st.session_state.expertise_val = "Intermediate"
 
@@ -265,6 +247,19 @@ with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     st.header("⚙️ Control Panel")
     api_key = st.text_input("Groq API Key:", type="password")
+    
+    # DODANO: Vodič v obliki klikalnega gumba pod poljem za API ključ
+    if st.button("📖 Vodič za uporabo"):
+        st.info("""
+        1. **API ključ**: Najprej vnesite svoj Groq API ključ za povezavo z umetno inteligenco.
+        2. **Profil uporabnika**: Izberite način razmišljanja, ki najbolj ustreza vašemu raziskovalnemu slogu.
+        3. **Znanstvena področja**: Določite eno ali več disciplin, ki jih želite medsebojno povezati.
+        4. **Nastavitve parametrov**: Prilagodite stopnjo strokovnosti, strukturne modele in paradigme.
+        5. **Vnos raziskovalcev**: Po želji vnesite imena avtorjev za vključitev njihove bibliografije v sintezo.
+        6. **Postavite vprašanje**: V spodnje polje vpišite svojo poizvedbo ali problem, ki ga želite rešiti.
+        7. **Izvedba sinteze**: Kliknite na gumb 'Execute' za generiranje odgovora in interaktivnega omrežja.
+        """)
+        
     if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
     
     st.divider()
@@ -425,4 +420,3 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
 st.divider()
 st.caption("SIS Universal Knowledge Synthesizer | v5.0 Active ORCID Bibliography & Cytoscape Edition | 2026")
-
