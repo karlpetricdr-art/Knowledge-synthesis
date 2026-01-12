@@ -3,6 +3,7 @@ import json
 import base64
 import requests
 import urllib.parse
+import re
 from openai import OpenAI
 import streamlit.components.v1 as components
 
@@ -41,14 +42,14 @@ SVG_3D_RELIEF = """
 """
 
 # --- CYTOSCAPE VIZUALIZACIJA ---
-def render_cytoscape_network(elements):
+def render_cytoscape_network(elements, container_id="cy"):
     """Izriše barvito interaktivno omrežje Cytoscape.js."""
     cyto_html = f"""
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
-    <div id="cy" style="width: 100%; height: 500px; background: #ffffff; border-radius: 15px; border: 1px solid #eee;"></div>
+    <div id="{container_id}" style="width: 100%; height: 500px; background: #ffffff; border-radius: 15px; border: 1px solid #eee;"></div>
     <script>
         var cy = cytoscape({{
-            container: document.getElementById('cy'),
+            container: document.getElementById('{container_id}'),
             elements: {json.dumps(elements)},
             style: [
                 {{ selector: 'node', style: {{ 
@@ -56,8 +57,8 @@ def render_cytoscape_network(elements):
                     'text-valign': 'center', 
                     'color': '#333', 
                     'background-color': 'data(color)',
-                    'width': 50, 'height': 50,
-                    'font-size': '12px',
+                    'width': 55, 'height': 55,
+                    'font-size': '11px',
                     'font-weight': 'bold',
                     'text-outline-width': 2,
                     'text-outline-color': '#fff'
@@ -65,12 +66,15 @@ def render_cytoscape_network(elements):
                 {{ selector: 'edge', style: {{ 
                     'width': 3, 
                     'line-color': '#ddd', 
+                    'label': 'data(label)',
+                    'font-size': '9px',
                     'target-arrow-color': '#ddd', 
                     'target-arrow-shape': 'triangle', 
-                    'curve-style': 'bezier' 
+                    'curve-style': 'bezier',
+                    'text-rotation': 'autorotate'
                 }} }}
             ],
-            layout: {{ name: 'cose', padding: 40, animate: true }}
+            layout: {{ name: 'cose', padding: 40, animate: true, nodeRepulsion: 10000 }}
         }});
     </script>
     """
@@ -123,7 +127,7 @@ def fetch_author_bibliographies(author_input):
     return comprehensive_biblio
 
 # =========================================================
-# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY
+# 1. THE ADVANCED MULTIDIMENSIONAL ONTOLOGY (FULL VERSION)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": [
@@ -196,14 +200,12 @@ KNOWLEDGE_BASE = {
             "cat": "Formal Sciences",
             "methods": ["Algorithm Design", "Formal Verification", "Agile Development"],
             "tools": [
-                "IDE (VS Code)", "Version Control (Git)", "GPU Clusters",
-                "LLM + LangChain + LLMGraphTransformer",
+                "IDE (VS Code)", "GPU Clusters", 
+                "LLM + LangChain + LLMGraphTransformer", 
                 "LLM + Graph Maker / kg-gen",
-                "Plotly Treemap",
-                "squarify + matplotlib",
-                "streamlit-markmap"
+                "Plotly Treemap", "streamlit-markmap"
             ],
-            "facets": ["Artificial Intelligence", "Cybersecurity", "Distributed Systems"]
+            "facets": ["Artificial Intelligence", "Knowledge Graphs", "Cybersecurity"]
         },
         "Medicine": {
             "cat": "Applied Sciences",
@@ -250,7 +252,7 @@ if 'show_user_guide' not in st.session_state:
     st.session_state.show_user_guide = False
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Multi-dimensional synthesis engine for **Personalized Knowledge Architecture**.")
+st.markdown("Multi-dimensional synthesis engine with **Active LLMGraphTransformer Architecture**.")
 
 # --- SIDEBAR START ---
 with st.sidebar:
@@ -265,13 +267,13 @@ with st.sidebar:
 
     if st.session_state.show_user_guide:
         st.info("""
-        1. **API Key**: First, enter your Groq API key to connect the application to the AI engine.
-        2. **User Profile**: Select the thinking style or cognitive profile that best suits your research approach.
-        3. **Science Fields**: Define one or more academic disciplines you wish to interconnect or analyze.
-        4. **Parameter Settings**: Fine-tune your expertise level, structural models, and scientific paradigms.
-        5. **Research Authors**: Optionally enter author names to fetch and include their bibliography in the synthesis.
-        6. **Submit Inquiry**: Type your specific query or the problem you want to solve in the text area below.
-        7. **Execute Synthesis**: Click the 'Execute' button to generate the multidimensional response and the network map.
+        1. **API Key**: Enter your Groq API key for AI-driven synthesis.
+        2. **User Profile**: Select your cognitive thinking style.
+        3. **Science Fields**: Interconnect multiple academic disciplines.
+        4. **Parameter Settings**: Fine-tune expertise, structural models, and paradigms.
+        5. **Research Authors**: Input authors to fetch their real bibliographies.
+        6. **Submit Inquiry**: Describe the problem you want to synthesize.
+        7. **Execution**: The system will generate text AND a semantic knowledge graph.
         """)
         if st.button("Close Guide ✖️"):
             st.session_state.show_user_guide = False
@@ -299,8 +301,6 @@ with st.sidebar:
         for p, d in KNOWLEDGE_BASE["paradigms"].items(): st.write(f"**{p}**: {d}")
     with st.expander("🔬 Science Fields"):
         for s in sorted(KNOWLEDGE_BASE["subject_details"].keys()): st.write(f"• **{s}**")
-    with st.expander("🏗️ Structural Models"):
-        for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
     if st.button("♻️ Reset Session", use_container_width=True):
@@ -308,36 +308,39 @@ with st.sidebar:
         st.rerun()
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
-    st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
 
 # =========================================================
-# 🛠️ CONFIGURE INTERFACE
+# 🛠️ CONFIGURE INTERFACE (FULL 4 ROWS)
 # =========================================================
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
+# --- VRSTICA 1: RESEARCH AUTHORS ---
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", value="", placeholder="e.g. Karl Petrič, Samo Kralj, Teodor Petrič")
-    st.caption("Active connectivity for real-time bibliographic synergy analysis.")
+    st.caption("Active connectivity for real-time bibliographic synergy analysis via ORCID.")
 
+# --- VRSTICA 2: USER PROFILES, SCIENCE FIELDS, EXPERTISE LEVEL ---
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     selected_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
 with r2_c2:
     sciences_list = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    selected_sciences = st.multiselect("2. Science Fields:", sciences_list, default=[sciences_list[0]])
+    selected_sciences = st.multiselect("2. Science Fields:", sciences_list, default=["Computer Science"])
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
+# --- VRSTICA 3: STRUCTURAL MODELS, SCIENTIFIC PARADIGMS, CONTEXT/GOAL ---
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
-    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=[list(KNOWLEDGE_BASE["knowledge_models"].keys())[0]])
+    selected_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
 with r3_c2:
     selected_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Personal Growth", "Problem Solving", "Educational"])
 
+# --- VRSTICA 4: MENTAL APPROACHES, METHODOLOGIES, SPECIFIC TOOLS ---
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     selected_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=[KNOWLEDGE_BASE["mental_approaches"][0]])
@@ -345,8 +348,9 @@ with r4_c1:
 agg_methods = []
 agg_tools = []
 for s in selected_sciences:
-    agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-    agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    if s in KNOWLEDGE_BASE["subject_details"]:
+        agg_methods.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+        agg_tools.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
 with r4_c2:
     selected_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_methods))))
@@ -357,7 +361,7 @@ st.divider()
 user_query = st.text_area("❓ Your Synthesis Inquiry:", placeholder="Synthesize interdisciplinary synergy to solve...")
 
 # =========================================================
-# 3. CORE SYNTHESIS LOGIC (Groq AI + Cytoscape)
+# 3. CORE SYNTHESIS LOGIC (Groq AI + Dual Cytoscape)
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key:
@@ -366,6 +370,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
         st.warning("Please select at least one Science Field.")
     else:
         try:
+            # 1. FETCH BIBLIOGRAPHY
             synergy_biblio = ""
             if target_authors:
                 with st.spinner(f'Compiling research synergy for {target_authors}...'):
@@ -373,24 +378,26 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # 2. CONSTRUCT SYSTEM PROMPT (INCLUDING LLMGraphTransformer Instructions)
             system_prompt = f"""
             You are the SIS Universal Knowledge Synthesizer. Build a 'Lego Logic' architecture.
             
-            STRICT RESEARCH CONTEXT (Active Metadata):
-            {synergy_biblio if synergy_biblio else "No specific author data found. Use internal scientific training."}
+            STRICT RESEARCH CONTEXT:
+            {synergy_biblio if synergy_biblio else "Use internal scientific training."}
 
             OBJECTIVE:
-            1. Analyze synergy between the specific research works of {target_authors}.
-            2. Synthesize a solution for: {user_query}.
-            3. Consider advanced visualization frameworks if applicable:
-               - LLM + LangChain + LLMGraphTransformer (Knowledge Graph synthesis)
-               - LLM + Graph Maker / kg-gen (Alternative Graph generation)
-               - Plotly Treemap (Interactive hierarchy)
-               - streamlit-markmap (Mindmap layout)
+            1. Synthesize a solution for: {user_query}.
+            2. Apply the LLMGraphTransformer paradigm to extract a knowledge graph from your synthesis.
 
+            STRICT OUTPUT FORMAT:
+            A. Markdown response with headers.
+            B. At the very end, add a section starting with '### SEMANTIC_KNOWLEDGE_GRAPH_JSON'.
+            C. Follow it with a JSON block: {{"nodes": [{{"id": "...", "label": "...", "color": "..."}}], "edges": [{{"source": "...", "target": "...", "label": "..."}}]}}
+            Extract key concepts as nodes and relationships as edges.
+            
             CONFIG:
             Profiles: {", ".join(selected_profiles)} | Expertise: {expertise} | Paradigms: {", ".join(selected_paradigms)}
-            Sciences: {", ".join(selected_sciences)} | Models: {", ".join(selected_models)} | Approaches: {", ".join(selected_approaches)}
+            Sciences: {", ".join(selected_sciences)} | Approaches: {", ".join(selected_approaches)}
             """
             
             with st.spinner('Synthesizing research synergy...'):
@@ -399,35 +406,59 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
                     temperature=0.6
                 )
+                
+                full_raw_output = response.choices[0].message.content
+                
+                # PARSING THE OUTPUT
+                parts = full_raw_output.split("### SEMANTIC_KNOWLEDGE_GRAPH_JSON")
+                main_markdown = parts[0]
+                
                 st.subheader("📊 Synthesis Output")
-                st.markdown(response.choices[0].message.content)
+                st.markdown(main_markdown)
 
-                # --- CYTOSCAPE ---
-                st.subheader("🕸️ Multi-Dimensional Synergy Network")
-                nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
-                edges = []
+                # --- VIZUALIZACIJA 1: SEMANTIČNI GRAF (IZ VSEBINE) ---
+                if len(parts) > 1:
+                    try:
+                        json_match = re.search(r'\{.*\}', parts[1], re.DOTALL)
+                        if json_match:
+                            graph_data = json.loads(json_match.group())
+                            st.subheader("🕸️ LLMGraphTransformer: Semantic Knowledge Graph")
+                            st.caption("Extracted semantic relationships from the generated synthesis.")
+                            
+                            semantic_elements = []
+                            for n in graph_data.get("nodes", []):
+                                semantic_elements.append({"data": {"id": n["id"], "label": n["label"], "color": n.get("color", "#2a9d8f")}})
+                            for e in graph_data.get("edges", []):
+                                semantic_elements.append({"data": {"source": e["source"], "target": e["target"], "label": e.get("label", "related")}})
+                            
+                            render_cytoscape_network(semantic_elements, "semantic_viz")
+                    except Exception as parse_err:
+                        st.warning(f"Semantic graph extraction failed: {parse_err}")
+
+                # --- VIZUALIZACIJA 2: STRUKTURNI GRAF (IZ VHODOV) ---
+                st.subheader("📍 Input Synergy Map")
+                st.caption("Structural connectivity of your configuration parameters.")
+                input_nodes = [{"data": {"id": "query", "label": "INQUIRY", "color": "#e63946"}}]
+                input_edges = []
 
                 for auth in (target_authors.split(",") if target_authors else []):
                     a_name = auth.strip()
-                    nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
-                    edges.append({"data": {"source": "query", "target": a_name}})
+                    input_nodes.append({"data": {"id": a_name, "label": a_name, "color": "#457b9d"}})
+                    input_edges.append({"data": {"source": "query", "target": a_name, "label": "authored_by"}})
 
                 for sci in selected_sciences:
-                    nodes.append({"data": {"id": sci, "label": sci, "color": "#2a9d8f"}})
-                    edges.append({"data": {"source": "query", "target": sci}})
+                    input_nodes.append({"data": {"id": sci, "label": sci, "color": "#f4a261"}})
+                    input_edges.append({"data": {"source": "query", "target": sci, "label": "field"}})
 
-                for model in selected_models:
-                    nodes.append({"data": {"id": model, "label": model, "color": "#f4a261"}})
-                    edges.append({"data": {"source": "query", "target": model}})
-
-                render_cytoscape_network(nodes + edges)
+                render_cytoscape_network(input_nodes + input_edges, "input_viz")
                 
                 if synergy_biblio:
-                    with st.expander("📚 View Metadata Fetched from Research Databases"):
+                    with st.expander("📚 View Active ORCID Metadata"):
                         st.text(synergy_biblio)
                 
         except Exception as e:
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v5.4 LLM Graph & Advanced Viz Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v5.6 Active ORCID & Semantic Graph Edition | 2026")
+
