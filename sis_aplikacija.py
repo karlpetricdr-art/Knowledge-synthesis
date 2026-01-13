@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Integracija CSS za vizualne poudarke, Google linke in gladko navigacijo
+# Integracija CSS za vizualne poudarke, Google linke in navigacijo
 st.markdown("""
 <style>
     .semantic-node-highlight {
@@ -98,7 +98,7 @@ SVG_3D_RELIEF = """
 # --- CYTOSCAPE RENDERER Z HIERARHIJO IN INTERAKTIVNOSTJO ---
 def render_cytoscape_network(elements, container_id="cy"):
     """
-    Izriše interaktivno omrežje Cytoscape.js.
+    Izriše interaktivno omrežje Cytoscape.js z visoko gostoto povezav.
     """
     cyto_html = f"""
     <div id="{container_id}" style="width: 100%; height: 600px; background: #ffffff; border-radius: 15px; border: 1px solid #eee; box-shadow: 2px 2px 12px rgba(0,0,0,0.05);"></div>
@@ -130,7 +130,7 @@ def render_cytoscape_network(elements, container_id="cy"):
                     {{
                         selector: 'edge',
                         style: {{
-                            'width': 3,
+                            'width': 2,
                             'line-color': '#adb5bd',
                             'label': 'data(label)',
                             'font-size': '9px',
@@ -138,11 +138,19 @@ def render_cytoscape_network(elements, container_id="cy"):
                             'target-arrow-color': '#adb5bd',
                             'target-arrow-shape': 'triangle',
                             'curve-style': 'bezier',
-                            'text-rotation': 'autorotate'
+                            'text-rotation': 'autorotate',
+                            'opacity': 0.8
                         }}
                     }}
                 ],
-                layout: {{ name: 'cose', padding: 50, animate: true, nodeRepulsion: 25000, idealEdgeLength: 120 }}
+                layout: {{ 
+                    name: 'cose', 
+                    padding: 50, 
+                    animate: true, 
+                    nodeRepulsion: 30000, 
+                    idealEdgeLength: 150,
+                    edgeElasticity: 100
+                }}
             }});
             
             cy.on('tap', 'node', function(evt){{
@@ -159,7 +167,6 @@ def render_cytoscape_network(elements, container_id="cy"):
     """
     components.html(cyto_html, height=630)
 
-# --- PRIDOBIVANJE BIBLIOGRAFIJ Z LETNICAMI ---
 def fetch_author_bibliographies(author_input):
     """Zajame bibliografske podatke z letnicami preko ORCID in Scholar API baz."""
     if not author_input: return ""
@@ -235,7 +242,7 @@ KNOWLEDGE_BASE = {
         "Chemistry": {"cat": "Natural", "methods": ["Synthesis", "Spectroscopy"], "tools": ["NMR", "Chromatography"], "facets": ["Organic", "Molecular"]},
         "Biology": {"cat": "Natural", "methods": ["Sequencing", "CRISPR"], "tools": ["Microscope", "Bio-Incubator"], "facets": ["Genetics", "Ecology"]},
         "Neuroscience": {"cat": "Natural", "methods": ["Neuroimaging", "Electrophys"], "tools": ["fMRI", "EEG"], "facets": ["Plasticity", "Synaptic"]},
-        "Psychology": {"cat": "Social", "methods": ["Double-Blind Trials", "Psychometrics"], "tools": ["fMRI", "Testing Kits"], "facets": ["Behavioral", "Cognitive"]},
+        "Psychology": {"cat": "Social", "methods": ["Double-Blind", "Psychometrics"], "tools": ["fMRI", "Testing Kits"], "facets": ["Behavioral", "Cognitive"]},
         "Sociology": {"cat": "Social", "methods": ["Ethnography", "Surveys"], "tools": ["Data Analytics", "Archives"], "facets": ["Stratification", "Dynamics"]},
         "Computer Science": {"cat": "Formal", "methods": ["Algorithm Design", "Verification"], "tools": ["LLMGraphTransformer", "GPU Clusters", "Git"], "facets": ["AI", "Cybersecurity"]},
         "Medicine": {"cat": "Applied", "methods": ["Clinical Trials", "Epidemiology"], "tools": ["MRI/CT", "Bio-Markers"], "facets": ["Immunology", "Pharmacology"]},
@@ -264,13 +271,13 @@ with st.sidebar:
         st.rerun()
     if st.session_state.show_user_guide:
         st.info("""
-        1. **API Key**: Enter your key to connect the AI engine.
-        2. **Auto-Complete**: All dimensions are pre-filled; remove what you don't need.
-        3. **Authors**: Provide author names to fetch ORCID metadata.
-        4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
-        5. **Semantic Graph**: Explore the colorful interconnected network of concepts.
-        6. **Author Links**: All researcher names in text link directly to Google Search.
-        7. **Scroll-to-Text**: Click graph nodes to find their definition in the text.
+        1. **API Key**: Connect your Groq API key for high-speed interdisciplinary synthesis.
+        2. **Configuration**: All dimensions are pre-filled for maximum depth. Remove components to refine.
+        3. **Authors**: Provide author names to fetch ORCID metadata and link them to Google Search.
+        4. **Inquiry**: Ask complex questions about global synergy, crime, or theoretical sciences.
+        5. **Semantic Network**: Explore a single, colorful interconnected map of all concepts.
+        6. **Search Integration**: Click Pojme or Author names in text to trigger Google Searches.
+        7. **Scroll Navigation**: Tap graph nodes to jump directly to definitions in the dissertation.
         """)
         if st.button("Close Guide ✖️"): st.session_state.show_user_guide = False; st.rerun()
 
@@ -298,7 +305,7 @@ with st.sidebar:
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Semantic Architecture**.")
+st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Hierarchical Architecture**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
@@ -308,7 +315,7 @@ with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active bibliographic analysis via ORCID (includes publication years).")
 
-# ROW 2: CORE CONFIG (Vnaprej izpolnjeno vse)
+# ROW 2: CORE CONFIG (Defaults to ALL for full synergy)
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     sel_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=list(KNOWLEDGE_BASE["profiles"].keys()))
@@ -318,7 +325,7 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# ROW 3: PARADIGMS & MODELS (Vnaprej izpolnjeno vse)
+# ROW 3: PARADIGMS & MODELS (Defaults to ALL)
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     sel_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=list(KNOWLEDGE_BASE["knowledge_models"].keys()))
@@ -327,7 +334,7 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Problem Solving", "Educational", "Policy Making"])
 
-# ROW 4: APPROACHES, METHODS, TOOLS (Vnaprej izpolnjeno vse)
+# ROW 4: APPROACHES, METHODS, TOOLS (Defaults to ALL)
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     sel_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=KNOWLEDGE_BASE["mental_approaches"])
@@ -348,7 +355,7 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:",
                          height=150)
 
 # =========================================================
-# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED GRAPH
+# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED 12D GRAPH
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key: st.error("Missing Groq API Key.")
@@ -358,25 +365,25 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # SISTEMSKO NAVODILO: Fokus na obširnost in popolno povezanost dimenzij
             sys_prompt = f"""
-            You are the SIS Synthesizer. Perform an exhaustive dissertation-level synthesis (1500+ words).
+            You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
             
             HIERARCHY & INTERCONNECTIVITY TASK:
-            1. Integrate all dimensions into a cohesive logic.
-            2. Connect disparate disciplines associatively (e.g. Sociology with Data Analytics).
-            3. Address the inquiry: {user_query}.
+            1. Integrate all selected dimensions into a single cohesive logic.
+            2. Connect disparate disciplines associatively (e.g. how Chemistry impacts Sociology in crime prevention).
+            3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
 
-            STRICT OUTPUT FORMAT:
+            STRICT FORMAT:
             - LONG MARKDOWN dissertation.
-            - NO list of nodes (Root, Branch, Leaf) in text format after the dissertation.
+            - NO list of node definitions (Root Node: ..., Branch Node: ...) in text.
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
-            - MANDATORY: Nodes must be COLORFUL and HIGHLY INTERCONNECTED with each other.
-            - Define 'type' as 'Root', 'Branch', or 'Leaf' for nodes.
-            - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
+            - Assign colorful hex codes to nodes based on their scientific discipline.
+            - Schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root|Branch|Leaf", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
             """
             
-            with st.spinner('Synthesizing exhaustive interdisciplinary synergy (8–40s)...'):
+            with st.spinner('Synthesizing exhaustive 12D hierarchical synergy (8–40s)...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_query}],
@@ -417,16 +424,15 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        st.subheader("🕸️ LLMGraphTransformer: Interconnected Semantic Architecture")
-                        st.caption("Colorful nodes represent key concepts. Click nodes to scroll to definition. All elements are part of one large network.")
+                        st.subheader("🕸️ LLMGraphTransformer: Unified Interdisciplinary Network")
+                        st.caption("Colorful nodes represent hierarchical concepts. Dimensions are associatively connected in one large omrežje.")
                         
                         elements = []
                         for n in g_json.get("nodes", []):
                             level = n.get("type", "Branch")
                             size = 90 if level == "Root" else (70 if level == "Branch" else 50)
-                            color = n.get("color", "#2a9d8f")
                             elements.append({"data": {
-                                "id": n["id"], "label": n["label"], "color": color,
+                                "id": n["id"], "label": n["label"], "color": n.get("color", "#2a9d8f"),
                                 "size": size, "z_index": 10 if level == "Root" else 1
                             }})
                         for e in g_json.get("edges", []):
@@ -434,7 +440,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                                 "source": e["source"], "target": e["target"], "label": e.get("label", "interconnects")
                             }})
                         render_cytoscape_network(elements, "semantic_viz_full")
-                    except: st.warning("Graph data could not be parsed.")
+                    except: st.warning("Graph data parsing error.")
 
                 if biblio:
                     with st.expander("📚 View Metadata Fetched from Research Databases"):
@@ -444,7 +450,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v10.0 Interconnected 12D Hierarchy Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v10.5 Unified 12D Interdisciplinary Linking | 2026")
+
 
 
 
