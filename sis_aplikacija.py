@@ -348,7 +348,7 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:",
                          height=150)
 
 # =========================================================
-# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED GRAPH
+# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED 12D GRAPH
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key: st.error("Missing Groq API Key.")
@@ -358,25 +358,30 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # SISTEMSKO NAVODILO: Fokus na obširnost in popolno povezanost dimenzij
             sys_prompt = f"""
-            You are the SIS Synthesizer. Perform an exhaustive dissertation-level synthesis (1500+ words).
+            You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
             
             HIERARCHY & INTERCONNECTIVITY TASK:
-            1. Integrate all dimensions into a cohesive logic.
-            2. Connect disparate disciplines associatively (e.g. Sociology with Data Analytics).
-            3. Address the inquiry: {user_query}.
+            1. Integrate all selected dimensions into a single cohesive logic.
+            2. Connect disparate disciplines associatively (e.g. how Chemistry impacts Sociology in crime prevention).
+            3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
 
-            STRICT OUTPUT FORMAT:
-            - LONG MARKDOWN dissertation.
-            - NO list of nodes (Root, Branch, Leaf) in text format after the dissertation.
+            STRICT FORMATTING & SPACE ALLOCATION:
+            - Focus 100% of the textual content on deep research, causal analysis, and innovative problem-solving synergy.
+            - DO NOT include introductory or redundant descriptions of the hierarchical map or lists of node definitions in the text.
+            - DO NOT write "Root Node: ...", "Branch Node: ..." or any structural map metadata in markdown.
+            - The textual dissertation must be purely analytical.
+
+            LLMGraphTransformer TASK:
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
-            - MANDATORY: Nodes must be COLORFUL and HIGHLY INTERCONNECTED with each other.
+            - Assign colorful hex codes to nodes based on their scientific discipline.
             - Define 'type' as 'Root', 'Branch', or 'Leaf' for nodes.
             - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
             """
             
-            with st.spinner('Synthesizing exhaustive interdisciplinary synergy (8–40s)...'):
+            with st.spinner('Synthesizing exhaustive 12D hierarchical synergy (8–40s)...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_query}],
@@ -417,8 +422,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        st.subheader("🕸️ LLMGraphTransformer: Interconnected Semantic Architecture")
-                        st.caption("Colorful nodes represent key concepts. Click nodes to scroll to definition. All elements are part of one large network.")
+                        st.subheader("🕸️ LLMGraphTransformer: Unified Interdisciplinary Network")
+                        st.caption("Colorful nodes represent hierarchical concepts. Dimensions are associatively connected in one large network.")
                         
                         elements = []
                         for n in g_json.get("nodes", []):
@@ -444,7 +449,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v10.0 Interconnected 12D Hierarchy Edition | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & 12D Interdisciplinary Linking | 2026")
+
 
 
 
