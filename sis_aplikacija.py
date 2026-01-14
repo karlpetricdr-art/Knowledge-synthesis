@@ -204,7 +204,7 @@ def fetch_author_bibliographies(author_input):
     return comprehensive_biblio
 
 # =========================================================
-# 1. POPOLNA MULTIDIMENZIONALNA ONTOLOGIJA (VSEH 12 DISCIPLIN)
+# 1. POPOLNA MULTIDIMENZIONALNA ONTOLOGIJA (VSEH 16 DISCIPLIN)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": ["Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max", "Whole and part", "Addition and composition", "Balance", "Abstraction and elimination", "Openness and closedness", "Bipolarity and dialectics", "Framework and foundation", "Pleasure and displeasure", "Similarity and difference", "Core (Attraction & Repulsion)", "Condensation", "Constant", "Associativity"],
@@ -242,7 +242,11 @@ KNOWLEDGE_BASE = {
         "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA Analysis"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
-        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]}
+        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
+        "Geography": {"cat": "Natural/Social", "methods": ["Spatial Analysis", "Cartography", "GIS Modeling"], "tools": ["ArcGIS", "Remote Sensing Satellites"], "facets": ["Physical Geography", "Human Geography"]},
+        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Seismology", "Petrography"], "tools": ["Seismograph", "Rock Hammer", "XRF Analyzer"], "facets": ["Plate Tectonics", "Mineralogy"]},
+        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling", "Paleoclimatology", "Meteorological Analysis"], "tools": ["Weather Stations", "Satellite Radiometers"], "facets": ["Climate Change", "Atmospheric Physics"]},
+        "History": {"cat": "Humanities", "methods": ["Historiography", "Archival Research", "Paleography"], "tools": ["Carbon Dating", "Digital Archives"], "facets": ["Social History", "Political History"]}
     }
 }
 
@@ -334,8 +338,9 @@ with r4_c1:
 
 agg_meth, agg_tool = [], []
 for s in sel_sciences:
-    agg_meth.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-    agg_tool.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    if s in KNOWLEDGE_BASE["subject_details"]:
+        agg_meth.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+        agg_tool.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
 with r4_c2:
     sel_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_meth))), default=sorted(list(set(agg_meth))))
@@ -365,7 +370,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             HIERARCHY & INTERCONNECTIVITY TASK:
             1. Integrate all selected dimensions into a single cohesive logic.
-            2. Connect disparate disciplines associatively (e.g. how Chemistry impacts Sociology in crime prevention).
+            2. Connect disparate disciplines associatively (e.g. how Geology and History impact Sociology in migration studies).
             3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
 
             STRICT FORMATTING & SPACE ALLOCATION:
@@ -381,7 +386,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
             """
             
-            with st.spinner('Synthesizing exhaustive 12D hierarchical synergy (8–40s)...'):
+            with st.spinner('Synthesizing exhaustive interdisciplinary synergy (8–40s)...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_query}],
@@ -449,7 +454,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & 12D Interdisciplinary Linking | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & Multi-Dimensional Interdisciplinary Linking | 2026")
+
 
 
 
