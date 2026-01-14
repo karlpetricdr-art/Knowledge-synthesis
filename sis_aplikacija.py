@@ -132,13 +132,18 @@ def render_cytoscape_network(elements, container_id="cy"):
                         style: {{
                             'width': 3,
                             'line-color': '#adb5bd',
-                            'label': 'data(label)',
-                            'font-size': '9px',
-                            'color': '#6c757d',
+                            'label': 'data(rel_type)',
+                            'font-size': '10px',
+                            'font-weight': 'bold',
+                            'color': '#2a9d8f',
                             'target-arrow-color': '#adb5bd',
                             'target-arrow-shape': 'triangle',
                             'curve-style': 'bezier',
-                            'text-rotation': 'autorotate'
+                            'text-rotation': 'autorotate',
+                            'text-background-opacity': 1,
+                            'text-background-color': '#ffffff',
+                            'text-background-padding': '2px',
+                            'text-background-shape': 'roundrectangle'
                         }}
                     }}
                 ],
@@ -243,10 +248,10 @@ KNOWLEDGE_BASE = {
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
         "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
-        "Geography": {"cat": "Natural/Social", "methods": ["Spatial Analysis", "Cartography", "GIS Modeling"], "tools": ["ArcGIS", "Remote Sensing Satellites"], "facets": ["Physical Geography", "Human Geography"]},
-        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Seismology", "Petrography"], "tools": ["Seismograph", "Rock Hammer", "XRF Analyzer"], "facets": ["Plate Tectonics", "Mineralogy"]},
-        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling", "Paleoclimatology", "Meteorological Analysis"], "tools": ["Weather Stations", "Satellite Radiometers"], "facets": ["Climate Change", "Atmospheric Physics"]},
-        "History": {"cat": "Humanities", "methods": ["Historiography", "Archival Research", "Paleography"], "tools": ["Carbon Dating", "Digital Archives"], "facets": ["Social History", "Political History"]}
+        "Geography": {"cat": "Mixed", "methods": ["Spatial Analysis", "GIS"], "tools": ["GIS Software"], "facets": ["Human Geo", "Physical Geo"]},
+        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Mineralogy"], "tools": ["Seismograph"], "facets": ["Tectonics"]},
+        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling"], "tools": ["Meteorological Stations"], "facets": ["Change Analysis"]},
+        "History": {"cat": "Humanities", "methods": ["Archival Research", "Historiography"], "tools": ["Archives"], "facets": ["Chronology", "Social History"]}
     }
 }
 
@@ -302,7 +307,7 @@ with st.sidebar:
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Semantic Architecture**.")
+st.markdown("Advanced Multi-dimensional synthesis with **Organic Polyhierarchical Mapping**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
@@ -368,22 +373,26 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
             
+            KNOWLEDGE ORGANIZATION ALGORITHMS (Thesaurus Logic):
+            Determine relationships between concepts using:
+            - TT (Top Term): Root/Super-ordinate concepts.
+            - BT (Broader Term): Parent concepts.
+            - NT (Narrower Term): Specific applications/child concepts.
+            - AS (Associative): Cross-discipline links.
+            - RT (Related Term): Side-connections.
+            - Equivalent: Parallel concepts in different fields.
+
             HIERARCHY & INTERCONNECTIVITY TASK:
             1. Integrate all selected dimensions into a single cohesive logic.
-            2. Connect disparate disciplines associatively (e.g. how Geology and History impact Sociology in migration studies).
-            3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
+            2. Use poly-hierarchies (one NT can have multiple BTs).
+            3. Connect disparate disciplines (e.g. Climatology to Sociology).
 
-            STRICT FORMATTING & SPACE ALLOCATION:
-            - Focus 100% of the textual content on deep research, causal analysis, and innovative problem-solving synergy.
-            - DO NOT include introductory or redundant descriptions of the hierarchical map or lists of node definitions in the text.
-            - DO NOT write "Root Node: ...", "Branch Node: ..." or any structural map metadata in markdown.
-            - The textual dissertation must be purely analytical.
-
-            LLMGraphTransformer TASK:
+            STRICT FORMATTING:
+            - LONG MARKDOWN dissertation only (no lists of nodes).
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
             - Assign colorful hex codes to nodes based on their scientific discipline.
-            - Define 'type' as 'Root', 'Branch', or 'Leaf' for nodes.
-            - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
+            - Edge schema MUST include "rel_type" field (TT, BT, NT, AS, RT, or EQ).
+            - JSON: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root|Branch|Leaf", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "BT|NT|AS..."}}]}}
             """
             
             with st.spinner('Synthesizing exhaustive interdisciplinary synergy (8–40s)...'):
@@ -427,8 +436,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        st.subheader("🕸️ LLMGraphTransformer: Unified Interdisciplinary Network")
-                        st.caption("Colorful nodes represent hierarchical concepts. Dimensions are associatively connected in one large network.")
+                        st.subheader("🕸️ LLMGraphTransformer: Organic Polyhierarchical Network")
+                        st.caption("Colorful nodes represent hierarchical concepts. Edges show Thesaurus relations (BT, NT, AS, etc.). Click nodes to scroll.")
                         
                         elements = []
                         for n in g_json.get("nodes", []):
@@ -441,7 +450,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                             }})
                         for e in g_json.get("edges", []):
                             elements.append({"data": {
-                                "source": e["source"], "target": e["target"], "label": e.get("label", "interconnects")
+                                "source": e["source"], "target": e["target"], "rel_type": e.get("rel_type", "AS")
                             }})
                         render_cytoscape_network(elements, "semantic_viz_full")
                     except: st.warning("Graph data could not be parsed.")
@@ -454,7 +463,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & Multi-Dimensional Interdisciplinary Linking | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.0 Organic Polyhierarchical Interdisciplinary Linking | 2026")
+
 
 
 
