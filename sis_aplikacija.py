@@ -104,31 +104,30 @@ def login_gate():
     with col2:
         st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="200"></div>', unsafe_allow_html=True)
         st.title("🔐 SIS Access Control")
-        st.info("Welcome to the SIS Synthesizer. Please log in to proceed.")
+        st.info("Please log in with your authorized credentials.")
         
         tab1, tab2 = st.tabs(["Login", "Register"])
         
         with tab1:
             username = st.text_input("Username", key="login_user")
             password = st.text_input("Password", type="password", key="login_pw")
-            # DODANO: Remember me opcija
-            remember_me = st.checkbox("Remember me", key="remember_me")
+            remember_me = st.checkbox("Remember me", key="remember_me_check")
             
             if st.button("Log In", use_container_width=True):
-                if username and password: # Demo validacijska logika
+                if username == "GKKP":
                     st.session_state['authenticated'] = True
                     st.rerun()
                 else:
-                    st.error("Please provide credentials.")
+                    st.error("Invalid username. Only GKKP is authorized.")
         
         with tab2:
-            st.markdown("### Create an account")
-            st.write("To use this engine, you must also obtain your own Groq API Key.")
+            st.markdown("### Account Registration")
+            st.write("Authorized users (GKKP) should ensure they have their own Groq API Key.")
             st.markdown("[Get your Groq API Key here](https://console.groq.com/keys)")
-            reg_user = st.text_input("New Username", key="reg_user")
-            reg_pw = st.text_input("New Password", type="password", key="reg_pw")
+            st.text_input("New Username", key="reg_user")
+            st.text_input("New Password", type="password", key="reg_pw")
             if st.button("Register Account", use_container_width=True):
-                st.success("Registration successful! You can now log in.")
+                st.warning("Manual registration is currently disabled. Please contact admin for GKKP access.")
 
 if not st.session_state['authenticated']:
     login_gate()
@@ -307,10 +306,10 @@ with st.sidebar:
         for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-    # GUMB ZA RESETIRANJE (POPRIŽENI: BREZ ODJAVE)
+    # GUMB ZA RESETIRANJE (BREZ ODJAVE)
     if st.button("♻️ Reset Session", use_container_width=True):
         auth_state = st.session_state.get('authenticated', False)
-        # Pobrišemo vse razen avtentikacije
+        # Pobrišemo vse razen statusa prijave
         for key in list(st.session_state.keys()):
             if key != 'authenticated':
                 del st.session_state[key]
@@ -321,13 +320,13 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     
-    # PREMEŠČEN GUMB ZA ODJAVO (DODANO)
+    # GUMB ZA ODJAVO
     if st.button("🚪 Log Out", use_container_width=True):
         st.session_state['authenticated'] = False
         st.rerun()
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Semantic Architecture**.")
+st.markdown("Advanced Multi-dimensional synthesis with **Organic Polyhierarchical Integration**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
@@ -337,13 +336,12 @@ with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active bibliographic analysis via ORCID (includes publication years).")
 
-# ROW 2: CORE CONFIG (MINIMAL SETTINGS)
+# ROW 2: CORE CONFIG (Minimal settings, specific fields)
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
     sel_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
 with r2_c2:
     all_sciences = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    # PRIVZETO: Physics, Computer science in Linguistics
     sel_sciences = st.multiselect("2. Science Fields:", all_sciences, default=["Physics", "Computer Science", "Linguistics"])
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
@@ -389,6 +387,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # SISTEMSKO NAVODILO
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
@@ -476,7 +475,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Auth & Navigation | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.1 Authorized User GKKP Access | 2026")
+
 
 
 
