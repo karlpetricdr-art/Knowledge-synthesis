@@ -95,10 +95,10 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-# --- CYTOSCAPE RENDERER Z HIERARHIJO IN INTERAKTIVNOSTJO ---
+# --- CYTOSCAPE RENDERER Z HIERARHIJO, UML PODPORO IN INTERAKTIVNOSTJO ---
 def render_cytoscape_network(elements, container_id="cy"):
     """
-    Izriše interaktivno omrežje Cytoscape.js.
+    Izriše interaktivno omrežje Cytoscape.js s podporo za UML razredne diagrame.
     """
     cyto_html = f"""
     <div id="{container_id}" style="width: 100%; height: 600px; background: #ffffff; border-radius: 15px; border: 1px solid #eee; box-shadow: 2px 2px 12px rgba(0,0,0,0.05);"></div>
@@ -128,6 +128,17 @@ def render_cytoscape_network(elements, container_id="cy"):
                         }}
                     }},
                     {{
+                        selector: 'node[type="Class"]',
+                        style: {{
+                            'shape': 'rectangle',
+                            'border-width': 2,
+                            'border-color': '#2a9d8f',
+                            'background-color': '#f8f9fa',
+                            'text-wrap': 'wrap',
+                            'padding': '10px'
+                        }}
+                    }},
+                    {{
                         selector: 'edge',
                         style: {{
                             'width': 3,
@@ -144,6 +155,20 @@ def render_cytoscape_network(elements, container_id="cy"):
                             'text-background-color': '#ffffff',
                             'text-background-padding': '2px',
                             'text-background-shape': 'roundrectangle'
+                        }}
+                    }},
+                    {{
+                        selector: 'edge[rel_type="Inheritance"]',
+                        style: {{
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-fill': 'hollow'
+                        }}
+                    }},
+                    {{
+                        selector: 'edge[rel_type="Composition"]',
+                        style: {{
+                            'source-arrow-shape': 'diamond',
+                            'source-arrow-fill': 'filled'
                         }}
                     }}
                 ],
@@ -276,9 +301,9 @@ with st.sidebar:
         1. **API Key**: Enter your key to connect the AI engine.
         2. **Auto-Complete**: All dimensions are pre-filled; remove what you don't need.
         3. **Authors**: Provide author names to fetch ORCID metadata.
-        4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
+        4. **Inquiry**: Submit a query for an exhaustive dissertation.
         5. **Semantic Graph**: Explore the colorful interconnected network of concepts.
-        6. **Author Links**: All researcher names in text link directly to Google Search.
+        6. **UML Mapping**: Complex architectures are visualized as UML class diagrams.
         7. **Scroll-to-Text**: Click graph nodes to find their definition in the text.
         """)
         if st.button("Close Guide ✖️"): st.session_state.show_user_guide = False; st.rerun()
@@ -307,7 +332,7 @@ with st.sidebar:
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Advanced Multi-dimensional synthesis with **Organic Polyhierarchical Mapping**.")
+st.markdown("Advanced Multi-dimensional synthesis with **UML Class & Organic Polyhierarchical Mapping**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
@@ -358,7 +383,7 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:",
                          height=150)
 
 # =========================================================
-# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED 12D GRAPH
+# 3. JEDRO SINTEZE: GROQ AI + UML & INTERCONNECTED GRAPH
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key: st.error("Missing Groq API Key.")
@@ -368,34 +393,30 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # SISTEMSKO NAVODILO: Fokus na obširnost in popolno povezanost dimenzij
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
             
-            KNOWLEDGE ORGANIZATION ALGORITHMS (Thesaurus Logic):
-            Determine relationships between concepts using:
-            - TT (Top Term): Root/Super-ordinate concepts.
-            - BT (Broader Term): Parent concepts.
-            - NT (Narrower Term): Specific applications/child concepts.
-            - AS (Associative): Cross-discipline links.
-            - RT (Related Term): Side-connections.
-            - Equivalent: Parallel concepts in different fields.
+            KNOWLEDGE ORGANIZATION ALGORITHMS:
+            Determine relationships using Thesaurus (TT, BT, NT, AS, RT, EQ) OR UML Class Diagram logic.
+            
+            UML CLASS DIAGRAM TASK:
+            - If a subsystem is highly structured, represent it as a Class Node.
+            - Relate classes using: Inheritance, Composition, Aggregation, or Dependency.
 
-            HIERARCHY & INTERCONNECTIVITY TASK:
-            1. Integrate all selected dimensions into a single cohesive logic.
-            2. Use poly-hierarchies (one NT can have multiple BTs).
-            3. Connect disparate disciplines (e.g. Climatology to Sociology).
+            HIERARCHY & INTERCONNECTIVITY:
+            1. Integrate dimensions into a single cohesive logic.
+            2. Connect nodes semantically and high-density.
 
             STRICT FORMATTING:
-            - LONG MARKDOWN dissertation only (no lists of nodes).
+            - LONG MARKDOWN dissertation only.
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
-            - Assign colorful hex codes to nodes based on their scientific discipline.
-            - Edge schema MUST include "rel_type" field (TT, BT, NT, AS, RT, or EQ).
-            - JSON: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root|Branch|Leaf", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "BT|NT|AS..."}}]}}
+            - Edge schema: "rel_type" field (BT, NT, AS, Inheritance, Composition, etc).
+            - Node schema: "type" field (Root, Branch, Leaf, Class).
+            - JSON: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Class|Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "Inheritance"}}]}}
             """
             
-            with st.spinner('Synthesizing exhaustive interdisciplinary synergy (8–40s)...'):
+            with st.spinner('Synthesizing exhaustive interdisciplinary synergy with UML integration (8–40s)...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_query}],
@@ -406,11 +427,9 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 parts = text_out.split("### SEMANTIC_GRAPH_JSON")
                 main_markdown = parts[0]
                 
-                # --- PROCESIRANJE BESEDILA (Google Search + Authors + Anchors) ---
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        # 1. Koncepti -> Google Search + ID značka
                         for n in g_json.get("nodes", []):
                             lbl, nid = n["label"], n["id"]
                             g_url = urllib.parse.quote(lbl)
@@ -418,7 +437,6 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                             replacement = f'<span id="{nid}"><a href="https://www.google.com/search?q={g_url}" target="_blank" class="semantic-node-highlight">{lbl}<i class="google-icon">↗</i></a></span>'
                             main_markdown = pattern.sub(replacement, main_markdown, count=1)
                         
-                        # 2. Avtorji -> Google Search Link
                         if target_authors:
                             for auth_name in target_authors.split(","):
                                 auth_stripped = auth_name.strip()
@@ -432,21 +450,20 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 st.subheader("📊 Synthesis Output")
                 st.markdown(main_markdown, unsafe_allow_html=True)
 
-                # --- VIZUALIZACIJA (Interconnected Graph) ---
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        st.subheader("🕸️ LLMGraphTransformer: Organic Polyhierarchical Network")
-                        st.caption("Colorful nodes represent hierarchical concepts. Edges show Thesaurus relations (BT, NT, AS, etc.). Click nodes to scroll.")
+                        st.subheader("🕸️ LLMGraphTransformer: Interconnected Polyhierarchical & UML Network")
+                        st.caption("Colorful nodes represent hierarchical concepts and UML Classes. Edges show Thesaurus & UML relations.")
                         
                         elements = []
                         for n in g_json.get("nodes", []):
                             level = n.get("type", "Branch")
-                            size = 90 if level == "Root" else (70 if level == "Branch" else 50)
+                            size = 100 if level == "Class" else (90 if level == "Root" else (70 if level == "Branch" else 50))
                             color = n.get("color", "#2a9d8f")
                             elements.append({"data": {
-                                "id": n["id"], "label": n["label"], "color": color,
-                                "size": size, "z_index": 10 if level == "Root" else 1
+                                "id": n["id"], "label": n["label"], "color": color, "type": level,
+                                "size": size, "z_index": 10 if level in ["Root", "Class"] else 1
                             }})
                         for e in g_json.get("edges", []):
                             elements.append({"data": {
@@ -463,7 +480,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.0 Organic Polyhierarchical Interdisciplinary Linking | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v13.0 UML Class Diagram & Polyhierarchical Integration | 2026")
+
 
 
 
