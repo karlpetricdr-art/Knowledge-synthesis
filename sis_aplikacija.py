@@ -111,8 +111,11 @@ def login_gate():
         with tab1:
             username = st.text_input("Username", key="login_user")
             password = st.text_input("Password", type="password", key="login_pw")
+            # DODANO: Remember me opcija
+            remember_me = st.checkbox("Remember me", key="remember_me")
+            
             if st.button("Log In", use_container_width=True):
-                if username and password: # Demo logika
+                if username and password: # Demo validacijska logika
                     st.session_state['authenticated'] = True
                     st.rerun()
                 else:
@@ -249,7 +252,7 @@ KNOWLEDGE_BASE = {
         "Sociology": {"cat": "Social", "methods": ["Ethnography", "Surveys"], "tools": ["Data Analytics", "Archives"], "facets": ["Stratification", "Dynamics"]},
         "Computer Science": {"cat": "Formal", "methods": ["Algorithm Design", "Verification"], "tools": ["LLMGraphTransformer", "GPU Clusters", "Git"], "facets": ["AI", "Cybersecurity"]},
         "Medicine": {"cat": "Applied", "methods": ["Trials", "Epidemiology"], "tools": ["MRI/CT", "Bio-Markers"], "facets": ["Immunology", "Pharmacology"]},
-        "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
+        "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA Analysis"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
         "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
@@ -281,7 +284,7 @@ with st.sidebar:
         1. **API Key**: Enter your key to connect the AI engine.
         2. **Minimal Config**: Defaults are set to Physics, CS, and Linguistics.
         3. **Authors**: Provide author names to fetch ORCID metadata.
-        4. **Inquiry**: Submit a query for an exhaustive dissertation.
+        4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
         5. **Semantic Graph**: Explore colorful nodes interconnected via TT, BT, NT logic.
         6. **Author Links**: All researcher names link directly to Google Search.
         7. **Google Concept Links**: Click keywords in text to trigger external searches.
@@ -304,7 +307,7 @@ with st.sidebar:
         for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-    # GUMB ZA RESETIRANJE (BREZ ODJAVE)
+    # GUMB ZA RESETIRANJE (POPRIŽENI: BREZ ODJAVE)
     if st.button("♻️ Reset Session", use_container_width=True):
         auth_state = st.session_state.get('authenticated', False)
         # Pobrišemo vse razen avtentikacije
@@ -318,7 +321,7 @@ with st.sidebar:
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     
-    # PREMEŠČEN GUMB ZA ODJAVO (POD SCHOLAR)
+    # PREMEŠČEN GUMB ZA ODJAVO (DODANO)
     if st.button("🚪 Log Out", use_container_width=True):
         st.session_state['authenticated'] = False
         st.rerun()
@@ -386,7 +389,6 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # SISTEMSKO NAVODILO
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
@@ -474,7 +476,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Navigation & Polyhierarchical Integration | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Auth & Navigation | 2026")
+
 
 
 
