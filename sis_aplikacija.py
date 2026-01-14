@@ -132,7 +132,7 @@ def render_cytoscape_network(elements, container_id="cy"):
                         style: {{
                             'width': 3,
                             'line-color': '#adb5bd',
-                            'label': 'data(label)',
+                            'label': 'data(rel_type)',
                             'font-size': '9px',
                             'color': '#6c757d',
                             'target-arrow-color': '#adb5bd',
@@ -243,10 +243,10 @@ KNOWLEDGE_BASE = {
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
         "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
-        "Geography": {"cat": "Natural/Social", "methods": ["Spatial Analysis", "Cartography", "GIS Modeling"], "tools": ["ArcGIS", "Remote Sensing Satellites"], "facets": ["Physical Geography", "Human Geography"]},
-        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Seismology", "Petrography"], "tools": ["Seismograph", "Rock Hammer", "XRF Analyzer"], "facets": ["Plate Tectonics", "Mineralogy"]},
-        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling", "Paleoclimatology", "Meteorological Analysis"], "tools": ["Weather Stations", "Satellite Radiometers"], "facets": ["Climate Change", "Atmospheric Physics"]},
-        "History": {"cat": "Humanities", "methods": ["Historiography", "Archival Research", "Paleography"], "tools": ["Carbon Dating", "Digital Archives"], "facets": ["Social History", "Political History"]}
+        "Geography": {"cat": "Natural/Social", "methods": ["Spatial Analysis", "GIS"], "tools": ["ArcGIS"], "facets": ["Human Geo", "Physical Geo"]},
+        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Mineralogy"], "tools": ["Seismograph"], "facets": ["Tectonics", "Petrology"]},
+        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling"], "tools": ["Weather Stations"], "facets": ["Change Analysis"]},
+        "History": {"cat": "Humanities", "methods": ["Archival Research", "Historiography"], "tools": ["Archives"], "facets": ["Social History"]}
     }
 }
 
@@ -269,7 +269,7 @@ with st.sidebar:
     if st.session_state.show_user_guide:
         st.info("""
         1. **API Key**: Enter your key to connect the AI engine.
-        2. **Auto-Complete**: All dimensions are pre-filled; remove what you don't need.
+        2. **Configuration**: Adjust dimensions as needed.
         3. **Authors**: Provide author names to fetch ORCID metadata.
         4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
         5. **Semantic Graph**: Explore the colorful interconnected network of concepts.
@@ -312,29 +312,29 @@ with r1_c2:
     target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič")
     st.caption("Active bibliographic analysis via ORCID (includes publication years).")
 
-# ROW 2: CORE CONFIG (Vnaprej izpolnjeno vse)
+# ROW 2: CORE CONFIG (Minimal settings, specific fields)
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 with r2_c1:
-    sel_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=list(KNOWLEDGE_BASE["profiles"].keys()))
+    sel_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
 with r2_c2:
-    all_sciences = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
-    sel_sciences = st.multiselect("2. Science Fields:", all_sciences, default=all_sciences)
+    # Posebej nastavljena polja: Physics, Computer science in Linguistics
+    sel_sciences = st.multiselect("2. Science Fields:", sorted(list(KNOWLEDGE_BASE["subject_details"].keys())), default=["Physics", "Computer Science", "Linguistics"])
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# ROW 3: PARADIGMS & MODELS (Vnaprej izpolnjeno vse)
+# ROW 3: PARADIGMS & MODELS (Minimal settings)
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
-    sel_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=list(KNOWLEDGE_BASE["knowledge_models"].keys()))
+    sel_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
 with r3_c2:
-    sel_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=list(KNOWLEDGE_BASE["paradigms"].keys()))
+    sel_paradigms = st.multiselect("5. Scientific Paradigms:", list(KNOWLEDGE_BASE["paradigms"].keys()), default=["Rationalism"])
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Problem Solving", "Educational", "Policy Making"])
 
-# ROW 4: APPROACHES, METHODS, TOOLS (Vnaprej izpolnjeno vse)
+# ROW 4: APPROACHES, METHODS, TOOLS (Minimal settings)
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
-    sel_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=KNOWLEDGE_BASE["mental_approaches"])
+    sel_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=["Perspective shifting"])
 
 agg_meth, agg_tool = [], []
 for s in sel_sciences:
@@ -343,9 +343,9 @@ for s in sel_sciences:
         agg_tool.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
 with r4_c2:
-    sel_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_meth))), default=sorted(list(set(agg_meth))))
+    sel_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_meth))), default=[])
 with r4_c3:
-    sel_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tool))), default=sorted(list(set(agg_tool))))
+    sel_tools = st.multiselect("9. Specific Tools:", sorted(list(set(agg_tool))), default=[])
 
 st.divider()
 user_query = st.text_area("❓ Your Synthesis Inquiry:", 
@@ -370,7 +370,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             
             HIERARCHY & INTERCONNECTIVITY TASK:
             1. Integrate all selected dimensions into a single cohesive logic.
-            2. Connect disparate disciplines associatively (e.g. how Geology and History impact Sociology in migration studies).
+            2. Connect disparate disciplines associatively (e.g. how Chemistry impacts Sociology in crime prevention).
             3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
 
             STRICT FORMATTING & SPACE ALLOCATION:
@@ -455,6 +455,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
 st.divider()
 st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & Multi-Dimensional Interdisciplinary Linking | 2026")
+
 
 
 
