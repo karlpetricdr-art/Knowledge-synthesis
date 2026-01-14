@@ -114,7 +114,6 @@ def login_gate():
             remember_me = st.checkbox("Remember me", key="remember_me_check")
             
             if st.button("Log In", use_container_width=True):
-                # Popravljeno: strip() odstrani morebitne presledke
                 if username_input.strip() == "GKKP":
                     st.session_state['authenticated'] = True
                     st.rerun()
@@ -307,20 +306,24 @@ with st.sidebar:
         for m, d in KNOWLEDGE_BASE["knowledge_models"].items(): st.write(f"**{m}**: {d}")
     
     st.divider()
-    # GUMB ZA RESETIRANJE (POPRIŽENI: BREZ ODJAVE)
+    # GUMB ZA RESETIRANJE (BREZ ODJAVE)
     if st.button("♻️ Reset Session", use_container_width=True):
         auth_state = st.session_state.get('authenticated', False)
+        # Pobrišemo vse, vendar prepišemo določene ključe na prazno
         for key in list(st.session_state.keys()):
             if key != 'authenticated':
                 del st.session_state[key]
         st.session_state['authenticated'] = auth_state
+        # Ročno čiščenje polj povezanih s ključi
+        st.session_state['target_authors_key'] = ""
+        st.session_state['user_query_key'] = ""
         st.rerun()
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
     
-    # GUMB ZA ODJAVO (POD SCHOLAR GUMBOM)
+    # GUMB ZA ODJAVO
     if st.button("🚪 Log Out", use_container_width=True):
         st.session_state['authenticated'] = False
         st.rerun()
@@ -333,7 +336,7 @@ st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 # ROW 1: AUTHORS
 r1_c1, r1_c2, r1_c3 = st.columns([1, 2, 1])
 with r1_c2:
-    target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič")
+    target_authors = st.text_input("👤 Research Authors:", placeholder="Karl Petrič, Samo Kralj, Teodor Petrič", key="target_authors_key")
     st.caption("Active bibliographic analysis via ORCID (includes publication years).")
 
 # ROW 2: CORE CONFIG (MINIMAL SETTINGS)
@@ -342,6 +345,7 @@ with r2_c1:
     sel_profiles = st.multiselect("1. User Profiles:", list(KNOWLEDGE_BASE["profiles"].keys()), default=["Adventurers"])
 with r2_c2:
     all_sciences = sorted(list(KNOWLEDGE_BASE["subject_details"].keys()))
+    # PRIVZETO: Physics, Computer science in Linguistics
     sel_sciences = st.multiselect("2. Science Fields:", all_sciences, default=["Physics", "Computer Science", "Linguistics"])
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
@@ -374,7 +378,7 @@ with r4_c3:
 st.divider()
 user_query = st.text_area("❓ Your Synthesis Inquiry:", 
                          placeholder="Create a synergy and synthesized knowledge for better resolving global problems like crime, distress, mass migration and poverty",
-                         height=150)
+                         height=150, key="user_query_key")
 
 # =========================================================
 # 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED 12D GRAPH
@@ -387,6 +391,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # SISTEMSKO NAVODILO
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
@@ -474,7 +479,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.1 Authorized User GKKP Access | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Reset & Auth Logic | 2026")
+
 
 
 
