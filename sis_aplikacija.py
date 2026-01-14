@@ -95,10 +95,10 @@ SVG_3D_RELIEF = """
 </svg>
 """
 
-# --- CYTOSCAPE RENDERER Z HIERARHIJO, UML PODPORO IN INTERAKTIVNOSTJO ---
+# --- CYTOSCAPE RENDERER Z HIERARHIJO IN INTERAKTIVNOSTJO ---
 def render_cytoscape_network(elements, container_id="cy"):
     """
-    Izriše interaktivno omrežje Cytoscape.js s podporo za UML razredne diagrame.
+    Izriše interaktivno omrežje Cytoscape.js.
     """
     cyto_html = f"""
     <div id="{container_id}" style="width: 100%; height: 600px; background: #ffffff; border-radius: 15px; border: 1px solid #eee; box-shadow: 2px 2px 12px rgba(0,0,0,0.05);"></div>
@@ -128,47 +128,17 @@ def render_cytoscape_network(elements, container_id="cy"):
                         }}
                     }},
                     {{
-                        selector: 'node[type="Class"]',
-                        style: {{
-                            'shape': 'rectangle',
-                            'border-width': 2,
-                            'border-color': '#2a9d8f',
-                            'background-color': '#f8f9fa',
-                            'text-wrap': 'wrap',
-                            'padding': '10px'
-                        }}
-                    }},
-                    {{
                         selector: 'edge',
                         style: {{
                             'width': 3,
                             'line-color': '#adb5bd',
-                            'label': 'data(rel_type)',
-                            'font-size': '10px',
-                            'font-weight': 'bold',
-                            'color': '#2a9d8f',
+                            'label': 'data(label)',
+                            'font-size': '9px',
+                            'color': '#6c757d',
                             'target-arrow-color': '#adb5bd',
                             'target-arrow-shape': 'triangle',
                             'curve-style': 'bezier',
-                            'text-rotation': 'autorotate',
-                            'text-background-opacity': 1,
-                            'text-background-color': '#ffffff',
-                            'text-background-padding': '2px',
-                            'text-background-shape': 'roundrectangle'
-                        }}
-                    }},
-                    {{
-                        selector: 'edge[rel_type="Inheritance"]',
-                        style: {{
-                            'target-arrow-shape': 'triangle',
-                            'target-arrow-fill': 'hollow'
-                        }}
-                    }},
-                    {{
-                        selector: 'edge[rel_type="Composition"]',
-                        style: {{
-                            'source-arrow-shape': 'diamond',
-                            'source-arrow-fill': 'filled'
+                            'text-rotation': 'autorotate'
                         }}
                     }}
                 ],
@@ -234,7 +204,7 @@ def fetch_author_bibliographies(author_input):
     return comprehensive_biblio
 
 # =========================================================
-# 1. POPOLNA MULTIDIMENZIONALNA ONTOLOGIJA (VSEH 16 DISCIPLIN)
+# 1. POPOLNA MULTIDIMENZIONALNA ONTOLOGIJA (VSEH 12 DISCIPLIN)
 # =========================================================
 KNOWLEDGE_BASE = {
     "mental_approaches": ["Perspective shifting", "Induction", "Deduction", "Hierarchy", "Mini-max", "Whole and part", "Addition and composition", "Balance", "Abstraction and elimination", "Openness and closedness", "Bipolarity and dialectics", "Framework and foundation", "Pleasure and displeasure", "Similarity and difference", "Core (Attraction & Repulsion)", "Condensation", "Constant", "Associativity"],
@@ -272,11 +242,7 @@ KNOWLEDGE_BASE = {
         "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA Analysis"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic Method", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
-        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
-        "Geography": {"cat": "Mixed", "methods": ["Spatial Analysis", "GIS"], "tools": ["GIS Software"], "facets": ["Human Geo", "Physical Geo"]},
-        "Geology": {"cat": "Natural", "methods": ["Stratigraphy", "Mineralogy"], "tools": ["Seismograph"], "facets": ["Tectonics"]},
-        "Climatology": {"cat": "Natural", "methods": ["Climate Modeling"], "tools": ["Meteorological Stations"], "facets": ["Change Analysis"]},
-        "History": {"cat": "Humanities", "methods": ["Archival Research", "Historiography"], "tools": ["Archives"], "facets": ["Chronology", "Social History"]}
+        "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]}
     }
 }
 
@@ -301,9 +267,9 @@ with st.sidebar:
         1. **API Key**: Enter your key to connect the AI engine.
         2. **Auto-Complete**: All dimensions are pre-filled; remove what you don't need.
         3. **Authors**: Provide author names to fetch ORCID metadata.
-        4. **Inquiry**: Submit a query for an exhaustive dissertation.
+        4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
         5. **Semantic Graph**: Explore the colorful interconnected network of concepts.
-        6. **UML Mapping**: Complex architectures are visualized as UML class diagrams.
+        6. **Author Links**: All researcher names in text link directly to Google Search.
         7. **Scroll-to-Text**: Click graph nodes to find their definition in the text.
         """)
         if st.button("Close Guide ✖️"): st.session_state.show_user_guide = False; st.rerun()
@@ -332,7 +298,7 @@ with st.sidebar:
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
-st.markdown("Advanced Multi-dimensional synthesis with **UML Class & Organic Polyhierarchical Mapping**.")
+st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Semantic Architecture**.")
 
 st.markdown("### 🛠️ Configure Your Multi-Dimensional Cognitive Build")
 
@@ -368,9 +334,8 @@ with r4_c1:
 
 agg_meth, agg_tool = [], []
 for s in sel_sciences:
-    if s in KNOWLEDGE_BASE["subject_details"]:
-        agg_meth.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
-        agg_tool.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
+    agg_meth.extend(KNOWLEDGE_BASE["subject_details"][s]["methods"])
+    agg_tool.extend(KNOWLEDGE_BASE["subject_details"][s]["tools"])
 
 with r4_c2:
     sel_methods = st.multiselect("8. Methodologies:", sorted(list(set(agg_meth))), default=sorted(list(set(agg_meth))))
@@ -383,7 +348,7 @@ user_query = st.text_area("❓ Your Synthesis Inquiry:",
                          height=150)
 
 # =========================================================
-# 3. JEDRO SINTEZE: GROQ AI + UML & INTERCONNECTED GRAPH
+# 3. JEDRO SINTEZE: GROQ AI + INTERCONNECTED 12D GRAPH
 # =========================================================
 if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=True):
     if not api_key: st.error("Missing Groq API Key.")
@@ -393,30 +358,30 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
+            # SISTEMSKO NAVODILO: Fokus na obširnost in popolno povezanost dimenzij
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
             
-            KNOWLEDGE ORGANIZATION ALGORITHMS:
-            Determine relationships using Thesaurus (TT, BT, NT, AS, RT, EQ) OR UML Class Diagram logic.
-            
-            UML CLASS DIAGRAM TASK:
-            - If a subsystem is highly structured, represent it as a Class Node.
-            - Relate classes using: Inheritance, Composition, Aggregation, or Dependency.
+            HIERARCHY & INTERCONNECTIVITY TASK:
+            1. Integrate all selected dimensions into a single cohesive logic.
+            2. Connect disparate disciplines associatively (e.g. how Chemistry impacts Sociology in crime prevention).
+            3. Use high-density semantic ROBES (edges) to create ONE LARGE CONNECTED NETWORK.
 
-            HIERARCHY & INTERCONNECTIVITY:
-            1. Integrate dimensions into a single cohesive logic.
-            2. Connect nodes semantically and high-density.
+            STRICT FORMATTING & SPACE ALLOCATION:
+            - Focus 100% of the textual content on deep research, causal analysis, and innovative problem-solving synergy.
+            - DO NOT include introductory or redundant descriptions of the hierarchical map or lists of node definitions in the text.
+            - DO NOT write "Root Node: ...", "Branch Node: ..." or any structural map metadata in markdown.
+            - The textual dissertation must be purely analytical.
 
-            STRICT FORMATTING:
-            - LONG MARKDOWN dissertation only.
+            LLMGraphTransformer TASK:
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
-            - Edge schema: "rel_type" field (BT, NT, AS, Inheritance, Composition, etc).
-            - Node schema: "type" field (Root, Branch, Leaf, Class).
-            - JSON: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Class|Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "Inheritance"}}]}}
+            - Assign colorful hex codes to nodes based on their scientific discipline.
+            - Define 'type' as 'Root', 'Branch', or 'Leaf' for nodes.
+            - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "label": "rel"}}]}}
             """
             
-            with st.spinner('Synthesizing exhaustive interdisciplinary synergy with UML integration (8–40s)...'):
+            with st.spinner('Synthesizing exhaustive 12D hierarchical synergy (8–40s)...'):
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_query}],
@@ -427,9 +392,11 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 parts = text_out.split("### SEMANTIC_GRAPH_JSON")
                 main_markdown = parts[0]
                 
+                # --- PROCESIRANJE BESEDILA (Google Search + Authors + Anchors) ---
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
+                        # 1. Koncepti -> Google Search + ID značka
                         for n in g_json.get("nodes", []):
                             lbl, nid = n["label"], n["id"]
                             g_url = urllib.parse.quote(lbl)
@@ -437,6 +404,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                             replacement = f'<span id="{nid}"><a href="https://www.google.com/search?q={g_url}" target="_blank" class="semantic-node-highlight">{lbl}<i class="google-icon">↗</i></a></span>'
                             main_markdown = pattern.sub(replacement, main_markdown, count=1)
                         
+                        # 2. Avtorji -> Google Search Link
                         if target_authors:
                             for auth_name in target_authors.split(","):
                                 auth_stripped = auth_name.strip()
@@ -450,24 +418,25 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                 st.subheader("📊 Synthesis Output")
                 st.markdown(main_markdown, unsafe_allow_html=True)
 
+                # --- VIZUALIZACIJA (Interconnected Graph) ---
                 if len(parts) > 1:
                     try:
                         g_json = json.loads(re.search(r'\{.*\}', parts[1], re.DOTALL).group())
-                        st.subheader("🕸️ LLMGraphTransformer: Interconnected Polyhierarchical & UML Network")
-                        st.caption("Colorful nodes represent hierarchical concepts and UML Classes. Edges show Thesaurus & UML relations.")
+                        st.subheader("🕸️ LLMGraphTransformer: Unified Interdisciplinary Network")
+                        st.caption("Colorful nodes represent hierarchical concepts. Dimensions are associatively connected in one large network.")
                         
                         elements = []
                         for n in g_json.get("nodes", []):
                             level = n.get("type", "Branch")
-                            size = 100 if level == "Class" else (90 if level == "Root" else (70 if level == "Branch" else 50))
+                            size = 90 if level == "Root" else (70 if level == "Branch" else 50)
                             color = n.get("color", "#2a9d8f")
                             elements.append({"data": {
-                                "id": n["id"], "label": n["label"], "color": color, "type": level,
-                                "size": size, "z_index": 10 if level in ["Root", "Class"] else 1
+                                "id": n["id"], "label": n["label"], "color": color,
+                                "size": size, "z_index": 10 if level == "Root" else 1
                             }})
                         for e in g_json.get("edges", []):
                             elements.append({"data": {
-                                "source": e["source"], "target": e["target"], "rel_type": e.get("rel_type", "AS")
+                                "source": e["source"], "target": e["target"], "label": e.get("label", "interconnects")
                             }})
                         render_cytoscape_network(elements, "semantic_viz_full")
                     except: st.warning("Graph data could not be parsed.")
@@ -480,7 +449,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v13.0 UML Class Diagram & Polyhierarchical Integration | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v11.0 Deep Problem-Solving & 12D Interdisciplinary Linking | 2026")
+
 
 
 
