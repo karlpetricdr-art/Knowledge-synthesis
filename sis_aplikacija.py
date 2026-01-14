@@ -112,7 +112,7 @@ def login_gate():
             username = st.text_input("Username", key="login_user")
             password = st.text_input("Password", type="password", key="login_pw")
             if st.button("Log In", use_container_width=True):
-                if username and password: # Preprosta logika za demo
+                if username and password: # Demo logika
                     st.session_state['authenticated'] = True
                     st.rerun()
                 else:
@@ -281,7 +281,7 @@ with st.sidebar:
         1. **API Key**: Enter your key to connect the AI engine.
         2. **Minimal Config**: Defaults are set to Physics, CS, and Linguistics.
         3. **Authors**: Provide author names to fetch ORCID metadata.
-        4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
+        4. **Inquiry**: Submit a query for an exhaustive dissertation.
         5. **Semantic Graph**: Explore colorful nodes interconnected via TT, BT, NT logic.
         6. **Author Links**: All researcher names link directly to Google Search.
         7. **Google Concept Links**: Click keywords in text to trigger external searches.
@@ -306,19 +306,22 @@ with st.sidebar:
     st.divider()
     # GUMB ZA RESETIRANJE (BREZ ODJAVE)
     if st.button("♻️ Reset Session", use_container_width=True):
-        auth_state = st.session_state['authenticated']
-        st.session_state.clear()
+        auth_state = st.session_state.get('authenticated', False)
+        # Pobrišemo vse razen avtentikacije
+        for key in list(st.session_state.keys()):
+            if key != 'authenticated':
+                del st.session_state[key]
         st.session_state['authenticated'] = auth_state
-        st.rerun()
-
-    # GUMB ZA ODJAVO (LOG OUT)
-    if st.button("🚪 Log Out", use_container_width=True):
-        st.session_state['authenticated'] = False
         st.rerun()
     
     st.link_button("🌐 GitHub Repository", "https://github.com/", use_container_width=True)
     st.link_button("🆔 ORCID Registry", "https://orcid.org/", use_container_width=True)
     st.link_button("🎓 Google Scholar Search", "https://scholar.google.com/", use_container_width=True)
+    
+    # PREMEŠČEN GUMB ZA ODJAVO (POD SCHOLAR)
+    if st.button("🚪 Log Out", use_container_width=True):
+        st.session_state['authenticated'] = False
+        st.rerun()
 
 st.title("🧱 SIS Universal Knowledge Synthesizer")
 st.markdown("Advanced Multi-dimensional synthesis with **Interconnected Semantic Architecture**.")
@@ -342,7 +345,7 @@ with r2_c2:
 with r2_c3:
     expertise = st.select_slider("3. Expertise Level:", options=["Novice", "Intermediate", "Expert"], value=st.session_state.expertise_val)
 
-# ROW 3: PARADIGMS & MODELS (MINIMAL SETTINGS)
+# ROW 3: PARADIGMS & MODELS (Minimal settings)
 r3_c1, r3_c2, r3_c3 = st.columns(3)
 with r3_c1:
     sel_models = st.multiselect("4. Structural Models:", list(KNOWLEDGE_BASE["knowledge_models"].keys()), default=["Concepts"])
@@ -351,7 +354,7 @@ with r3_c2:
 with r3_c3:
     goal_context = st.selectbox("6. Context / Goal:", ["Scientific Research", "Problem Solving", "Educational", "Policy Making"])
 
-# ROW 4: APPROACHES, METHODS, TOOLS (MINIMAL SETTINGS)
+# ROW 4: APPROACHES, METHODS, TOOLS (Minimal settings)
 r4_c1, r4_c2, r4_c3 = st.columns(3)
 with r4_c1:
     sel_approaches = st.multiselect("7. Mental Approaches:", KNOWLEDGE_BASE["mental_approaches"], default=["Perspective shifting"])
@@ -383,7 +386,7 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             biblio = fetch_author_bibliographies(target_authors) if target_authors else ""
             client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
             
-            # SISTEMSKO NAVODILO: Fokus na obširnost in popolno povezanost dimenzij
+            # SISTEMSKO NAVODILO
             sys_prompt = f"""
             You are the SIS Synthesizer. Perform an exhaustive dissertation (1500+ words).
             FIELDS: {", ".join(sel_sciences)}. CONTEXT AUTHORS: {biblio}.
@@ -397,14 +400,9 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
 
             STRICT FORMATTING & SPACE ALLOCATION:
             - Focus 100% of the textual content on deep research, causal analysis, and innovative problem-solving synergy.
-            - DO NOT include introductory or redundant descriptions of the hierarchical map or lists of node definitions in the text.
-            - DO NOT write "Root Node: ...", "Branch Node: ..." or any structural map metadata in markdown.
-            - The textual dissertation must be purely analytical.
-
-            LLMGraphTransformer TASK:
+            - DO NOT include descriptions of the map or lists of node definitions in the text. 
+            - DO NOT explain the visualization in the text.
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
-            - Assign colorful hex codes to nodes based on their scientific discipline.
-            - Define 'type' as 'Root', 'Branch', or 'Leaf' for nodes.
             - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root|Branch|Leaf|Class", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "BT|NT|AS|Inheritance|..."}}]}}
             """
             
@@ -455,7 +453,6 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
                         elements = []
                         for n in g_json.get("nodes", []):
                             level = n.get("type", "Branch")
-                            # Določanje velikosti glede na hierarhijo ali UML razred
                             size = 100 if level == "Class" else (90 if level == "Root" else (70 if level == "Branch" else 50))
                             color = n.get("color", "#2a9d8f")
                             elements.append({"data": {
@@ -477,7 +474,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.0 Organic Polyhierarchical Integration | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Navigation & Polyhierarchical Integration | 2026")
+
 
 
 
