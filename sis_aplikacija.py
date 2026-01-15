@@ -250,8 +250,8 @@ KNOWLEDGE_BASE = {
         "Psychology": {"cat": "Social", "methods": ["Trials", "Psychometrics"], "tools": ["fMRI", "Testing Kits"], "facets": ["Behavioral", "Cognitive"]},
         "Sociology": {"cat": "Social", "methods": ["Ethnography", "Surveys"], "tools": ["Data Analytics", "Archives"], "facets": ["Stratification", "Dynamics"]},
         "Computer Science": {"cat": "Formal", "methods": ["Algorithm Design", "Verification"], "tools": ["LLMGraphTransformer", "GPU Clusters", "Git"], "facets": ["AI", "Cybersecurity"]},
-        "Medicine": {"cat": "Applied", "methods": ["Trials", "Epidemiology"], "tools": ["MRI/CT", "Bio-Markers"], "facets": ["Immunology", "Pharmacology"]},
-        "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA Analysis"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
+        "Medicine": {"cat": "Applied", "methods": ["Clinical Trials", "Epidemiology"], "tools": ["MRI/CT", "Bio-Markers"], "facets": ["Immunology", "Pharmacology"]},
+        "Engineering": {"cat": "Applied", "methods": ["Prototyping", "FEA"], "tools": ["3D Printers", "CAD Software"], "facets": ["Robotics", "Nanotech"]},
         "Library Science": {"cat": "Applied", "methods": ["Taxonomy", "Appraisal"], "tools": ["OPAC", "Metadata"], "facets": ["Retrieval", "Knowledge Org"]},
         "Philosophy": {"cat": "Humanities", "methods": ["Socratic", "Phenomenology"], "tools": ["Logic Mapping", "Critical Analysis"], "facets": ["Epistemology", "Metaphysics"]},
         "Linguistics": {"cat": "Humanities", "methods": ["Corpus Analysis", "Syntactic Parsing"], "tools": ["Praat", "NLTK Toolkit"], "facets": ["Socioling", "CompLing"]},
@@ -273,14 +273,20 @@ if 'show_user_guide' not in st.session_state: st.session_state.show_user_guide =
 with st.sidebar:
     st.markdown(f'<div style="text-align:center"><img src="data:image/svg+xml;base64,{get_svg_base64(SVG_3D_RELIEF)}" width="220"></div>', unsafe_allow_html=True)
     st.header("⚙️ Control Panel")
-    api_key = st.text_input("Groq API Key:", type="password", help="Users must provide their own key from console.groq.com")
+    
+    # VARNOSTNA NADGRADNJA: Ključ se ne shranjuje v serverske secrets
+    api_key = st.text_input(
+        "Groq API Key:", 
+        type="password", 
+        help="Security: Your key is held only in the volatile memory of this session and is never stored on our servers."
+    )
     
     if st.button("📖 User Guide"):
         st.session_state.show_user_guide = not st.session_state.show_user_guide
         st.rerun()
     if st.session_state.show_user_guide:
         st.info("""
-        1. **API Key**: Enter your key to connect the AI engine.
+        1. **API Key**: Enter your key to connect the AI engine. It is NOT stored on the server.
         2. **Minimal Config**: Defaults are set to Physics, CS, and Linguistics.
         3. **Authors**: Provide author names to fetch ORCID metadata.
         4. **Inquiry**: Submit a complex query for an exhaustive dissertation.
@@ -290,8 +296,6 @@ with st.sidebar:
         """)
         if st.button("Close Guide ✖️"): st.session_state.show_user_guide = False; st.rerun()
 
-    if not api_key and "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
-    
     st.divider()
     st.subheader("📚 Knowledge Explorer")
     with st.expander("👤 User Profiles"):
@@ -309,7 +313,7 @@ with st.sidebar:
     # GUMB ZA RESETIRANJE (BREZ ODJAVE)
     if st.button("♻️ Reset Session", use_container_width=True):
         auth_state = st.session_state.get('authenticated', False)
-        # Pobrišemo vse, vendar prepišemo določene ključe na prazno
+        # Pobrišemo vse razen statusa prijave
         for key in list(st.session_state.keys()):
             if key != 'authenticated':
                 del st.session_state[key]
@@ -406,7 +410,6 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             STRICT FORMATTING & SPACE ALLOCATION:
             - Focus 100% of the textual content on deep research, causal analysis, and innovative problem-solving synergy.
             - DO NOT include descriptions of the map or lists of node definitions in the text. 
-            - DO NOT explain the visualization in the text.
             - End with '### SEMANTIC_GRAPH_JSON' followed by valid JSON only.
             - JSON schema: {{"nodes": [{{"id": "n1", "label": "Text", "type": "Root|Branch|Leaf|Class", "color": "#hex"}}], "edges": [{{"source": "n1", "target": "n2", "rel_type": "BT|NT|AS|Inheritance|..."}}]}}
             """
@@ -479,7 +482,8 @@ if st.button("🚀 Execute Multi-Dimensional Synthesis", use_container_width=Tru
             st.error(f"Synthesis failed: {e}")
 
 st.divider()
-st.caption("SIS Universal Knowledge Synthesizer | v12.1 Refined Reset & Auth Logic | 2026")
+st.caption("SIS Universal Knowledge Synthesizer | v12.1 Organic Interdisciplinary Integration | 2026")
+
 
 
 
